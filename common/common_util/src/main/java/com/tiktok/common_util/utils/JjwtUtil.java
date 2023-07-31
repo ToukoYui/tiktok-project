@@ -31,4 +31,5 @@ public class JjwtUtil {
         Integer userId = (Integer)claims.get("userId");
         return userId.longValue();
     }
+
 }
