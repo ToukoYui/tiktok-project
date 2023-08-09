@@ -5,6 +5,7 @@ import com.tiktok.service_user.model.vo.UserRegisterResp;
 import com.tiktok.service_user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -15,10 +16,13 @@ public class UserController {
     private UserService userService;
 
     @PostMapping("/register")
-    public UserRegisterResp userRegister(UserRegisterReq registerReq){
+    public UserRegisterResp userRegister(@RequestBody UserRegisterReq registerReq){
+        return userService.userRegister(registerReq);
+    }
 
-        userService.userRegister(registerReq);
-        return null;
+    @PostMapping("/login")
+    public UserRegisterResp userLogin(@RequestBody UserRegisterReq registerReq){
+        return userService.userLogin(registerReq);
     }
 
 

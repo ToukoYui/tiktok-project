@@ -15,4 +15,14 @@ public class UserRegisterResp {
     private Long userId;
 
     private String token;
+
+    public UserRegisterResp(String statusCode, String statusMsg, Long userId, String token) {
+        this.statusCode = statusCode;
+        this.statusMsg = statusMsg;
+        this.userId = userId;
+        this.token = token;
+    }
+
+    public UserRegisterResp() {
+    }
 }

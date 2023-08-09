@@ -23,9 +23,12 @@ public class JjwtUtil {
         return token;
     }
 
+
     // 根据token 获取userId
+    // 登陆过期验证
     public static Long getUserId(String token) {
         if(StringUtils.isEmpty(token)) return null;
+        // 非空则继续
         Jws<Claims> claimsJws = Jwts.parser().setSigningKey(tokenSignKey).parseClaimsJws(token);
         Claims claims = claimsJws.getBody();
         Integer userId = (Integer)claims.get("userId");
