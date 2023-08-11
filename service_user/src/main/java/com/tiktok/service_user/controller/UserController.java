@@ -16,12 +16,12 @@ public class UserController {
     private UserService userService;
 
     @PostMapping("/register")
-    public UserRegisterResp userRegister(@RequestBody UserRegisterReq registerReq){
+    public UserRegisterResp userRegister(UserRegisterReq registerReq){
         return userService.userRegister(registerReq);
     }
 
     @PostMapping("/login")
-    public UserRegisterResp userLogin(@RequestBody UserRegisterReq registerReq){
+    public UserRegisterResp userLogin(UserRegisterReq registerReq){
         return userService.userLogin(registerReq);
     }
 
