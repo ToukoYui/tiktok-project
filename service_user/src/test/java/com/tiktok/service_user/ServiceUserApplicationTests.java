@@ -4,6 +4,7 @@ import com.tiktok.common_util.utils.JjwtUtil;
 import com.tiktok.service_user.mapper.UserMapper;
 import com.tiktok.service_user.model.entity.User;
 import com.tiktok.service_user.service.UserService;
+import org.jasypt.encryption.pbe.StandardPBEStringEncryptor;
 import org.junit.jupiter.api.Test;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,9 +20,19 @@ class ServiceUserApplicationTests {
     private UserService userService;
 
     @Test
-    void contextLoads() {
-        int row = userMapper.insert(new User(1L, "awdwa", "dawawd"));
-        System.out.println("row = " + row);
+    void encrypt(){
+        StandardPBEStringEncryptor basicTextEncryptor = new StandardPBEStringEncryptor();
+        String env =System.getenv("DouyinSecretKey"); //读取环境变量得到密钥
+        basicTextEncryptor.setPassword(env); //设置密钥
+        basicTextEncryptor.setAlgorithm("PBEWithMD5AndDES"); //加密算法
+        String pwd = basicTextEncryptor.encrypt("mysecret"); // 加密“mysecret”文本
+        System.out.println(pwd);
+    }
+
+    @Test
+    public void getEnv(){
+        String env =System.getenv("DouyinSecretKey");
+        System.out.println("env = " + env);
     }
 
     @Test

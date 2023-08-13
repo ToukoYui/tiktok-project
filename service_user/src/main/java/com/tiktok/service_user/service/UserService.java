@@ -76,6 +76,8 @@ public class UserService {
      */
     public UserLoginResp userLogin(String username, String password) {
         UserLoginResp userLoginResp = new UserLoginResp();
+
+
         if (StringUtils.isEmpty(username) || StringUtils.isEmpty(password)){
             userLoginResp.setStatusMsg("用户信息填写有误");
             userLoginResp.setStatusCode("401");

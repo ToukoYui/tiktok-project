@@ -1,5 +1,6 @@
 package com.tiktok.service_user.controller;
 
+import com.tiktok.service_user.config.TokenBacketLimiter;
 import com.tiktok.service_user.model.vo.UserLoginResp;
 import com.tiktok.service_user.model.vo.UserRegisterResp;
 import com.tiktok.service_user.model.vo.UserResp;
@@ -25,7 +26,11 @@ public class UserController {
 
     @PostMapping("/login")
     public UserLoginResp userLogin(String username, String password){
-        // todo 令牌桶限流登录请求
+        // 令牌桶限流登录请求
+        boolean isGot = TokenBacketLimiter.getToken();
+        if (!isGot){
+            return new UserLoginResp("429","请求频繁，请稍后再试",null,null);
+        }
         return userService.userLogin(username, password);
     }
 
