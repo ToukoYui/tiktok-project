@@ -1,17 +1,13 @@
 package com.tiktok.service_user.controller;
 
 import com.tiktok.service_user.config.TokenBacketLimiter;
-import com.tiktok.service_user.model.vo.UserLoginResp;
-import com.tiktok.service_user.model.vo.UserRegisterResp;
-import com.tiktok.service_user.model.vo.UserResp;
-import com.tiktok.service_user.model.vo.UserVo;
 import com.tiktok.service_user.service.UserService;
-import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import com.tiktok.model.vo.user.UserLoginResp;
+import com.tiktok.model.vo.user.UserRegisterResp;
+import com.tiktok.model.vo.user.UserResp;
+import com.tiktok.model.vo.user.UserVo;
 
 @RestController
 @RequestMapping("/user")
@@ -20,7 +16,7 @@ public class UserController {
     private UserService userService;
 
     @PostMapping("/register")
-    public UserRegisterResp userRegister(String username,String password){
+    public UserRegisterResp userRegister(String username, String password){
         return userService.userRegister(username,password);
     }
 
@@ -35,7 +31,7 @@ public class UserController {
     }
 
     @GetMapping
-    public UserResp userInfo(@Param("user_id") Long userId, Boolean isPermitted){
+    public UserResp userInfo(@RequestParam("user_id") Long userId, Boolean isPermitted){
         System.out.println("userId = " + userId);
         System.out.println("isPermitted = " + isPermitted);
         if (!isPermitted){

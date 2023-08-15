@@ -2,7 +2,6 @@ package com.tiktok.service_user;
 
 import com.tiktok.common_util.utils.JjwtUtil;
 import com.tiktok.service_user.mapper.UserMapper;
-import com.tiktok.service_user.model.entity.User;
 import com.tiktok.service_user.service.UserService;
 import org.jasypt.encryption.pbe.StandardPBEStringEncryptor;
 import org.junit.jupiter.api.Test;

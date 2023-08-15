@@ -1,4 +1,4 @@
-package com.tiktok.service_user.model.entity;
+package com.tiktok.model.entity.user;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

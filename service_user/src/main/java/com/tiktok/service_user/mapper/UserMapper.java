@@ -1,6 +1,7 @@
 package com.tiktok.service_user.mapper;
 
-import com.tiktok.service_user.model.entity.User;
+
+import com.tiktok.model.entity.user.User;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 

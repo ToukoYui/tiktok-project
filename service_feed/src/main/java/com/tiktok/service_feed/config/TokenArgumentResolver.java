@@ -1,4 +1,4 @@
-package com.tiktok.service_user.config;
+package com.tiktok.service_feed.config;
 
 import com.tiktok.common_util.utils.JjwtUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -10,6 +10,7 @@ import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
+
 import javax.servlet.http.HttpServletRequest;
 
 

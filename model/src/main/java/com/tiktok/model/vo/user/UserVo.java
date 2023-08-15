@@ -1,4 +1,4 @@
-package com.tiktok.service_user.model.vo;
+package com.tiktok.model.vo.user;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;

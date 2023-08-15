@@ -2,13 +2,13 @@ package com.tiktok.service_user.service;
 
 import com.tiktok.common_util.utils.JjwtUtil;
 import com.tiktok.service_user.mapper.UserMapper;
-import com.tiktok.service_user.model.entity.User;
-import com.tiktok.service_user.model.vo.UserLoginResp;
-import com.tiktok.service_user.model.vo.UserRegisterResp;
+import com.tiktok.model.entity.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import com.tiktok.model.vo.user.UserLoginResp;
+import com.tiktok.model.vo.user.UserRegisterResp;
 
 import java.util.concurrent.TimeUnit;
 
@@ -26,7 +26,7 @@ public class UserService {
      * @param password
      * @return
      */
-    public UserRegisterResp userRegister(String username,String password) {
+    public UserRegisterResp userRegister(String username, String password) {
         UserRegisterResp userRegisterResp = new UserRegisterResp();
         // 输入信息非空则进行注册
         if (!StringUtils.isEmpty(username) && !StringUtils.isEmpty(password)){
