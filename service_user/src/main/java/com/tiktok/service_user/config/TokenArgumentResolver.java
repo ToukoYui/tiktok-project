@@ -2,6 +2,7 @@ package com.tiktok.service_user.config;
 
 import com.tiktok.common_util.utils.JjwtUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -47,7 +48,7 @@ public class TokenArgumentResolver implements HandlerMethodArgumentResolver {
             log.info("Redis中通过Token获取到的用户ID----------->"+userIdByRedis);
             String userIdByJjwt = JjwtUtil.getUserId(token).toString();
             log.info("解析前端Token获取到的用户ID----------->"+userIdByJjwt);
-            if (!userIdByRedis.equals(userIdByJjwt)){
+            if (StringUtils.isNotEmpty(userIdByRedis) && !userIdByRedis.equals(userIdByJjwt)){
                 log.error("Token解析异常----------->前端token与redis的token解析不一致，认证失败");
                 return Boolean.FALSE;
             }

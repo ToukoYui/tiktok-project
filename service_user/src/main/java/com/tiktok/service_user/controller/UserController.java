@@ -39,8 +39,8 @@ public class UserController {
         }
         // todo
         UserVo userVo = new UserVo();
-        return new UserResp("200",null,userVo);
+        userVo.setUsername("测试");
+        return new UserResp("200","获取用户信息成功",userVo);
     }
-
 
 }

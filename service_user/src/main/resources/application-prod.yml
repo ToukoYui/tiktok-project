@@ -2,6 +2,7 @@ server:
   port: 8021
   servlet:
     context-path: /douyin #request prefix
+  max-http-header-size: 20480
 
 spring:
   application:
@@ -24,6 +25,10 @@ spring:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
 
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
 
 mybatis:
 #  mapper-locations: classpath:mapper/*.xml
@@ -41,3 +46,11 @@ jasypt:
     password: ${DouyinSecretKey}  #解密密钥，通过环境变量读取
     algorithm: PBEWithMD5AndDES
     iv-generator-classname: org.jasypt.iv.NoIvGenerator
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 2000
+        readTimeout: 2000
+        loggerLevel: FULL

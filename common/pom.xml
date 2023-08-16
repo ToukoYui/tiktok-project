@@ -14,9 +14,14 @@
     <packaging>pom</packaging>
     <modules>
         <module>common_util</module>
+        <module>feign_util</module>
     </modules>
 
     <dependencies>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+        </dependency>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt</artifactId>

@@ -1,5 +1,6 @@
 server:
   port: 8022
+  max-http-header-size: 20480
   servlet:
     context-path: /douyin #request prefix
 
@@ -18,12 +19,24 @@ spring:
     host: 8.134.208.93
     port: 6379
     password: ENC(lQ3mg76A7j6WOm/j8zQ5dyfaDa06L4FX)
-    database: 1
+    database: 0
 
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
 
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 2000
+        readTimeout: 2000
+        loggerLevel: FULL
 
 mybatis:
 #  mapper-locations: classpath:mapper/*.xml
