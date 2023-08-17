@@ -5,6 +5,10 @@
         select * from tb_user where username = #{username} for update
     </select>
 
+    <select id="selectByUserId" resultType="com.tiktok.model.entity.user.User">
+        select * from tb_user where id = #{id} for update
+    </select>
+
     <!-- 根据用户号和密码查询用户信息 -->
     <select id="selectByUserNameAndPassword" resultType="com.tiktok.model.entity.user.User">
         select * from tb_user where username = #{username} and password = #{password} for update

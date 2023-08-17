@@ -1,6 +1,9 @@
 package com.tiktok.service_user.service;
 
+import cn.hutool.core.bean.BeanUtil;
+import com.alibaba.fastjson.JSONObject;
 import com.tiktok.common_util.utils.JjwtUtil;
+import com.tiktok.model.vo.user.UserVo;
 import com.tiktok.service_user.mapper.UserMapper;
 import com.tiktok.model.entity.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,4 +105,39 @@ public class UserService {
         }
         return userLoginResp;
     }
+
+
+    /**
+     * 获取用户信息功能
+     * 可能会有Long类型转换为String类型的bug
+     * @param userId
+     * @return
+     */
+    public UserVo getUserInfo(Long userId){
+        String key = "user:" + userId;
+        // 先去redis中查询,查询不到再去数据库,并存入redis中
+        String jsonObjectStr = redisTemplate.opsForValue().get(key);
+        if(jsonObjectStr == null){
+            // 如果获取不到则去数据库查询,并缓存到redis中
+            String id = String.valueOf(userId);
+            // 对id进行非空判断
+            if(id != null && !id.equals("")){
+                User user = userMapper.selectByUserId(id);
+                // 如果获取不到user,说明提供的userId有误
+                if(user == null){
+                    // 返回一个空对象
+                    return new UserVo();
+                }
+                // 存储到redis中
+                // Long类型的数据转换为String类型可能会出现bug
+                UserVo userVo = BeanUtil.copyProperties(user, UserVo.class);
+                jsonObjectStr = JSONObject.toJSONString(userVo);
+                redisTemplate.opsForValue().set(key,jsonObjectStr,2,TimeUnit.HOURS);
+            }
+        }
+        // 转换为对象
+        return JSONObject.parseObject(jsonObjectStr,UserVo.class);
+    }
+
+
 }

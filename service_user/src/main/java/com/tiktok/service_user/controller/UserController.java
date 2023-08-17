@@ -30,16 +30,25 @@ public class UserController {
         return userService.userLogin(username, password);
     }
 
+    /**
+     * 需要注意缓存更新策略
+     * 查询时，如果缓存未命中,则查询数据库,将数据库结果写入缓存,并设置超时时间
+     * 修改时,先修改数据库,再删除缓存
+     * @param userId
+     * @param isPermitted
+     * @return
+     */
     @GetMapping
     public UserResp userInfo(@RequestParam("user_id") Long userId, Boolean isPermitted){
-        System.out.println("userId = " + userId);
-        System.out.println("isPermitted = " + isPermitted);
+
         if (!isPermitted){
             return new UserResp("403","token错误，禁止访问",null);
         }
-        // todo
-        UserVo userVo = new UserVo();
-        userVo.setUsername("测试");
+        UserVo userVo = userService.getUserInfo(userId);
+        // 获取不到user,说明userId有误
+        if(userVo.getUsername() == null){
+            return new UserResp("403","输入userId有误,请重新输入",null);
+        }
         return new UserResp("200","获取用户信息成功",userVo);
     }
 
