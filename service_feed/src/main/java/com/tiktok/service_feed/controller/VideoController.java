@@ -1,5 +1,6 @@
 package com.tiktok.service_feed.controller;
 
+import com.tiktok.model.anno.OptionalParamAnno;
 import com.tiktok.model.anno.TokenAuthAnno;
 import com.tiktok.model.vo.TokenAuthSuccess;
 import com.tiktok.model.vo.video.PublishResp;
@@ -30,8 +31,8 @@ public class VideoController {
      * @return
      */
     @GetMapping("/feed")
-    public VideoResp getVideoList(@RequestParam("latest_time") String latestTimeStr, @TokenAuthAnno TokenAuthSuccess tokenAuthSuccess) {
-        if (tokenAuthSuccess == null) {
+    public VideoResp getVideoList(@RequestParam("latest_time") String latestTimeStr, @OptionalParamAnno TokenAuthSuccess tokenAuthSuccess) {
+        if (tokenAuthSuccess != null && tokenAuthSuccess.getUserId() == null) {
             return new VideoResp("403", "token错误，禁止访问", null, null);
         }
         // 如果last_time为空则用当前时间

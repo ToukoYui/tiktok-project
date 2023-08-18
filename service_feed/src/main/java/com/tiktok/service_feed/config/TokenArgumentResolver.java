@@ -1,6 +1,7 @@
 package com.tiktok.service_feed.config;
 
 import com.tiktok.common_util.utils.JjwtUtil;
+import com.tiktok.model.anno.OptionalParamAnno;
 import com.tiktok.model.anno.TokenAuthAnno;
 import com.tiktok.model.vo.TokenAuthSuccess;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +32,7 @@ public class TokenArgumentResolver implements HandlerMethodArgumentResolver {
 
     @Override
     public boolean supportsParameter(MethodParameter methodParameter) {
-        return methodParameter.hasParameterAnnotation(TokenAuthAnno.class);
+        return methodParameter.hasParameterAnnotation(TokenAuthAnno.class) || methodParameter.hasParameterAnnotation(OptionalParamAnno.class);
     }
 
     @Override
@@ -44,6 +45,10 @@ public class TokenArgumentResolver implements HandlerMethodArgumentResolver {
             log.info("前端请求路径--------->" + request.getRequestURL());
             // 拿到请求的token参数
             String token = request.getParameter("token");
+            // 如果拿不到token说明是feed接口调用，token为空也可以获取视频流
+            if (token == null){
+                return null;
+            }
             log.info("前端请求携带的Token---------->" + token);
             String userIdByRedis = redisTemplate.opsForValue().get("user:token:" + token);
             log.info("Redis中通过Token获取到的用户ID----------->"+userIdByRedis);
@@ -51,7 +56,7 @@ public class TokenArgumentResolver implements HandlerMethodArgumentResolver {
             log.info("解析前端Token获取到的用户ID----------->"+userIdByJjwt);
             if (StringUtils.isEmpty(userIdByRedis) || !userIdByRedis.equals(userIdByJjwt)){
                 log.error("Token解析异常----------->前端token与redis的token解析不一致，认证失败");
-                return null;
+                return new TokenAuthSuccess(null,token);
             }
             log.info("token认证通过，允许后续请求处理");
             return new TokenAuthSuccess(userIdByRedis,token);
