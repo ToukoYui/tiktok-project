@@ -7,6 +7,12 @@ server:
 spring:
   application:
     name: service-feed
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 20MB
+
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -54,3 +60,10 @@ jasypt:
     password: ${DouyinSecretKey}  #解密密钥，通过环境变量读取
     algorithm: PBEWithMD5AndDES
     iv-generator-classname: org.jasypt.iv.NoIvGenerator
+
+tencentyun:
+  oss:
+    cosRegion: ap-guangzhou #地域名
+    bucket: douyin-1313537069 # 存储桶名
+    secretId: ENC(Z3G9H2hwpdQMR1XbLcQxRr4T0wT8tVfBcUEhhP3PbBU41ODHLXu2hJ/y/95nKkrZ)
+    secretKey: ENC(NAVTBxcwmDTcgKidk60YDWNh3t/OiaiuHJLVEshs+R8cFRsy1wFeRwBQ6LVEZ4rZ)
