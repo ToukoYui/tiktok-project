@@ -3,6 +3,7 @@ package com.tiktok.model.vo.video;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tiktok.model.vo.user.UserVo;
 import lombok.Data;
+import java.util.Date;
 
 @Data
 public class VideoVo {
@@ -23,4 +24,10 @@ public class VideoVo {
 
     @JsonProperty("is_favorite")
     private Boolean isFavorite;
+
+    @JsonProperty("title")
+    private String title;
+
+    @JsonProperty("created_time")
+    private Date createdTime;
 }

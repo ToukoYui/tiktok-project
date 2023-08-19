@@ -9,37 +9,67 @@ import com.qcloud.cos.model.ObjectMetadata;
 import com.qcloud.cos.model.PutObjectRequest;
 import com.qcloud.cos.region.Region;
 import com.tiktok.feign_util.utils.UserFeignClient;
+import com.tiktok.model.entity.video.Video;
 import com.tiktok.model.vo.user.UserVo;
 import com.tiktok.model.vo.video.VideoVo;
 import com.tiktok.service_feed.config.OssPropertiesUtils;
+import com.tiktok.service_feed.mapper.VideoMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
+import javax.annotation.Resource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class VideoService {
     @Autowired
     private UserFeignClient userFeignClient;
+    @Autowired
+    private VideoMapper videoMapper;
+    @Resource
+    private RedisTemplate<String, List<VideoVo>> redisTemplate;
 
-    public List<VideoVo> getVideoList(String latestTimeStr, LocalDateTime lastTime,String token) {
-        String userId ="1";
-        UserVo userInfo;
-        // 获取用户信息
-        if (StringUtils.isEmpty(token)){
-           userInfo = userFeignClient.getUserInfoFromUserModelByNotToken(userId);
-        }else{
-            userInfo = userFeignClient.getUserInfoFromUserModel(userId,token);
+
+    public List<VideoVo> getVideoList(String lastTime, String token, String userId) {
+        System.out.println("lastTime = " + lastTime);
+        // 查询redis中是否有缓存
+        String redisKey = StringUtils.isEmpty(userId) ? "videolist:public" : "videolist:" + userId;
+        List<VideoVo> videoVoListFromRedis = redisTemplate.opsForValue().get(redisKey);
+        if (videoVoListFromRedis != null) {
+            log.info("获取视频流，从缓存中获取------------->" + videoVoListFromRedis.toString());
+            return videoVoListFromRedis;
         }
-        return null;
+
+        // 缓存中没有，查询数据库
+        List<Video> videoList = videoMapper.getVideoList(lastTime);
+        log.info("获取视频流，从MYSQL中获取------------->" + videoList.toString());
+        // 封装VideoVo
+        List<VideoVo> videoVoList = videoList.stream().map((video) -> {
+            String authorId = video.getUserId().toString();
+            // 获取投稿视频的用户信息
+            UserVo userInfo = userFeignClient.getUserInfoFromUserModelByNotToken(authorId);
+            VideoVo videoVo = new VideoVo();
+            BeanUtils.copyProperties(video, videoVo);
+            videoVo.setAuthor(userInfo);
+            // todo 获取点赞数
+            // todo 获取评论数
+            return videoVo;
+        }).collect(Collectors.toList());
+        // 存入redis
+        redisTemplate.opsForValue().set(redisKey, videoVoList, 3, TimeUnit.MINUTES);
+        return videoVoList;
     }
 
     private COSClient getCosClient() {
@@ -67,7 +97,7 @@ public class VideoService {
     }
 
     // 上传文件到腾讯云后返回该存储文件的url
-    public String uploadVideo(MultipartFile multipartFile,String title) {
+    public String uploadVideo(MultipartFile multipartFile, String title) {
         // 获取文件名及后缀
         String originalFilename = multipartFile.getOriginalFilename();
         // 获取文件后缀

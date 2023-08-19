@@ -48,7 +48,7 @@ public class UserService {
                 userRegisterResp.setToken(token);
 
                 // 将token存入redis中
-                redisTemplate.opsForValue().set("user:token:" + token,user.getId().toString(),2, TimeUnit.HOURS);
+                redisTemplate.opsForValue().set("user:token:" + token,user.getId().toString(),30, TimeUnit.MINUTES);
             } else {
                 userRegisterResp.setStatusMsg("用户已存在,请勿重复注册");
                 userRegisterResp.setStatusCode("401");
@@ -99,7 +99,7 @@ public class UserService {
                 userLoginResp.setToken(token);
 
                 // 将token存入redis中
-                redisTemplate.opsForValue().set("user:token:" + token,user.getId().toString(),2, TimeUnit.HOURS);
+                redisTemplate.opsForValue().set("user:token:" + token,user.getId().toString(),30, TimeUnit.MINUTES);
             } else {
                 userLoginResp.setStatusMsg("未找到用户");
                 userLoginResp.setStatusCode(401);
@@ -134,7 +134,7 @@ public class UserService {
                 // Long类型的数据转换为String类型可能会出现bug
                 UserVo userVo = BeanUtil.copyProperties(user, UserVo.class);
                 jsonObjectStr = JSONObject.toJSONString(userVo);
-                redisTemplate.opsForValue().set(key,jsonObjectStr,2,TimeUnit.HOURS);
+                redisTemplate.opsForValue().set(key,jsonObjectStr,30,TimeUnit.MINUTES);
             }
         }
         // 转换为对象

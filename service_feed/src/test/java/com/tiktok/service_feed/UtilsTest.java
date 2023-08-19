@@ -1,8 +1,13 @@
 package com.tiktok.service_feed;
 
 import com.tiktok.common_util.utils.JjwtUtil;
+import org.apache.commons.lang.StringUtils;
 import org.jasypt.encryption.pbe.StandardPBEStringEncryptor;
 import org.junit.jupiter.api.Test;
+
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class UtilsTest {
     @Test
@@ -28,6 +33,20 @@ public class UtilsTest {
                 ".E0INzm-VRGfydxBC1zsD8o04KivO6VUG6cTlxFssA5kiZveHziFCRd-9OjAxRtF7WowHXCrKfKl9JlXgnupmgw";
         Long userId = JjwtUtil.getUserId(token);
         System.out.println(userId);
+    }
+
+    @Test
+    void testTime(){
+        String latestTimeStr = "1692448249";
+        System.out.println("System.currentTimeMillis() = " + System.currentTimeMillis());
+        System.out.println(Long.parseLong(latestTimeStr));
+        // 如果last_time为空则用当前时间字符串
+        System.out.println(new Timestamp(Long.parseLong("1692448249")));
+        Timestamp timestamp = StringUtils.isEmpty(latestTimeStr) ?
+                new Timestamp(System.currentTimeMillis()) : new Timestamp(Long.parseLong(latestTimeStr)*1000);
+        LocalDateTime localDateTime = timestamp.toLocalDateTime();
+        String lastTime = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(localDateTime);
+        System.out.println("lastTime = " + lastTime);
     }
 
 }

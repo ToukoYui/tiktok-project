@@ -12,9 +12,10 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.List;
 
 @Slf4j
@@ -22,6 +23,7 @@ import java.util.List;
 public class VideoController {
     @Autowired
     private VideoService videoService;
+
 
     /**
      * 获取视频流信息（包含作者信息）
@@ -35,17 +37,22 @@ public class VideoController {
         if (!tokenAuthSuccess.getIsSuccess()) {
             return new VideoResp("403", "token错误，禁止访问", null, null);
         }
-        // 如果last_time为空则用当前时间
+        // 如果last_time为空则用当前时间字符串
         Timestamp timestamp = StringUtils.isEmpty(latestTimeStr) ?
-                new Timestamp(System.currentTimeMillis()) :
-                new Timestamp(Long.parseLong(latestTimeStr));
-        LocalDateTime lastTime = timestamp.toLocalDateTime();
-        List<VideoVo> videoList = videoService.getVideoList(latestTimeStr, lastTime,tokenAuthSuccess.getToken());
-        return new VideoResp("0", "获取视频流成功", null, videoList);
+                new Timestamp(System.currentTimeMillis()) : new Timestamp(Long.parseLong(latestTimeStr));
+        LocalDateTime localDateTime = timestamp.toLocalDateTime();
+        String lastTime = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(localDateTime);
+        // 获取视频
+        List<VideoVo> videoVoList = videoService.getVideoList(lastTime, tokenAuthSuccess.getToken(),tokenAuthSuccess.getUserId());
+        // 获取最早发布的视频的发布时间
+        Date nextTime = videoVoList.get(videoVoList.size() - 1).getCreatedTime();
+        Integer nextTimeInt = Math.toIntExact(nextTime.getTime() / 1000);
+        return new VideoResp("0", "获取视频流成功", nextTimeInt, videoVoList);
     }
 
     /**
      * 视频上传
+     *
      * @param multipartFile
      * @param title
      * @param tokenAuthSuccess

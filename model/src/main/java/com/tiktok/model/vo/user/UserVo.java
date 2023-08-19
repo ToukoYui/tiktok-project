@@ -6,7 +6,10 @@ import lombok.Data;
 @Data
 public class UserVo {
     private Long id;
+
+    @JsonProperty("name")
     private String username;
+
     private String avatar;
 
     @JsonProperty("follow_count")
