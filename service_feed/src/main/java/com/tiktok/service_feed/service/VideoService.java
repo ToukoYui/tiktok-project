@@ -29,6 +29,10 @@ public class VideoService {
     @Autowired
     private UserFeignClient userFeignClient;
 
+    // todo 需要微服务调用,调用user服务,获取读者
+    // todo 后续关注功能实现后需要将获取关注的人的视频
+    // 不限制登录状态 返回按照投稿事件倒序的视频列表,视频数有服务端控制,单次最多30个
+    //
     public List<VideoVo> getVideoList(String latestTimeStr, LocalDateTime lastTime, String userId, String token) {
         // 获取用户信息
         UserVo userInfo = userFeignClient.getUserInfoFromUserModel(userId, token);
