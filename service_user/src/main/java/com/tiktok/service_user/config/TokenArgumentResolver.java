@@ -1,6 +1,9 @@
 package com.tiktok.service_user.config;
 
 import com.tiktok.common_util.utils.JjwtUtil;
+import com.tiktok.model.anno.OptionalParamAnno;
+import com.tiktok.model.anno.TokenAuthAnno;
+import com.tiktok.model.vo.TokenAuthSuccess;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,11 +30,7 @@ public class TokenArgumentResolver implements HandlerMethodArgumentResolver {
 
     @Override
     public boolean supportsParameter(MethodParameter methodParameter) {
-        if (methodParameter.getParameterType() == Boolean.class){
-            System.out.println("methodParameter = " + methodParameter.getParameterType());
-            return true; //返回True后才能进入resolveArgument方法，这里主要进行能够支持的参数的检验
-        }
-        return false;
+        return methodParameter.hasParameterAnnotation(TokenAuthAnno.class) || methodParameter.hasParameterAnnotation(OptionalParamAnno.class);
     }
 
     @Override
@@ -41,22 +40,28 @@ public class TokenArgumentResolver implements HandlerMethodArgumentResolver {
                                   WebDataBinderFactory webDataBinderFactory) throws Exception {
         try{
             HttpServletRequest request = nativeWebRequest.getNativeRequest(HttpServletRequest.class);
+            log.info("前端请求路径--------->" + request.getRequestURL());
             // 拿到请求的token参数
             String token = request.getParameter("token");
+            // 如果拿不到token说明是feed接口调用，token为空也可以获取视频流
+            if (token == null){
+                log.info("前端请求携带的Token为空");
+                return null;
+            }
             log.info("前端请求携带的Token---------->" + token);
             String userIdByRedis = redisTemplate.opsForValue().get("user:token:" + token);
             log.info("Redis中通过Token获取到的用户ID----------->"+userIdByRedis);
             String userIdByJjwt = JjwtUtil.getUserId(token).toString();
             log.info("解析前端Token获取到的用户ID----------->"+userIdByJjwt);
-            if (StringUtils.isNotEmpty(userIdByRedis) && !userIdByRedis.equals(userIdByJjwt)){
+            if (!StringUtils.isEmpty(userIdByRedis) && !userIdByRedis.equals(userIdByJjwt)){
                 log.error("Token解析异常----------->前端token与redis的token解析不一致，认证失败");
-                return Boolean.FALSE;
+                return null;
             }
             log.info("token认证通过，允许后续请求处理");
-            return Boolean.TRUE;
+            return new TokenAuthSuccess(userIdByRedis,token,true);
         }catch (Exception e){
             log.error("Token解析异常----------->" + e.getMessage());
         }
-        return Boolean.FALSE;
+        return null;
     }
 }

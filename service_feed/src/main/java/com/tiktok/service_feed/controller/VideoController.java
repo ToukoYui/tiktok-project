@@ -32,7 +32,7 @@ public class VideoController {
      */
     @GetMapping("/feed")
     public VideoResp getVideoList(@RequestParam("latest_time") String latestTimeStr, @OptionalParamAnno TokenAuthSuccess tokenAuthSuccess) {
-        if (tokenAuthSuccess != null && tokenAuthSuccess.getUserId() == null) {
+        if (!tokenAuthSuccess.getIsSuccess()) {
             return new VideoResp("403", "token错误，禁止访问", null, null);
         }
         // 如果last_time为空则用当前时间
@@ -40,13 +40,22 @@ public class VideoController {
                 new Timestamp(System.currentTimeMillis()) :
                 new Timestamp(Long.parseLong(latestTimeStr));
         LocalDateTime lastTime = timestamp.toLocalDateTime();
-        List<VideoVo> videoList =
-                videoService.getVideoList(latestTimeStr, lastTime, tokenAuthSuccess.getUserId(), tokenAuthSuccess.getToken());
-        return new VideoResp("200", "获取视频流成功", null, videoList);
+        List<VideoVo> videoList = videoService.getVideoList(latestTimeStr, lastTime,tokenAuthSuccess.getToken());
+        return new VideoResp("0", "获取视频流成功", null, videoList);
     }
 
+    /**
+     * 视频上传
+     * @param multipartFile
+     * @param title
+     * @param tokenAuthSuccess
+     * @return
+     */
     @PostMapping("/publish/action")
     public PublishResp publishVideo(@RequestParam("data") MultipartFile multipartFile, String title, @TokenAuthAnno TokenAuthSuccess tokenAuthSuccess) {
+        if (!tokenAuthSuccess.getIsSuccess()) {
+            return new PublishResp(403, "token错误，禁止访问");
+        }
         String videoUrl = videoService.uploadVideo(multipartFile, title);
         if (StringUtils.isEmpty(videoUrl)) {
             return new PublishResp(400, "视频发布失败");

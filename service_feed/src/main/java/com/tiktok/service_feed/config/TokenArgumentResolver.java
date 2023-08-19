@@ -47,19 +47,21 @@ public class TokenArgumentResolver implements HandlerMethodArgumentResolver {
             String token = request.getParameter("token");
             // 如果拿不到token说明是feed接口调用，token为空也可以获取视频流
             if (token == null){
-                return null;
+                log.info("前端请求携带的Token为空");
+                return new TokenAuthSuccess(null,null,true);
             }
+
             log.info("前端请求携带的Token---------->" + token);
             String userIdByRedis = redisTemplate.opsForValue().get("user:token:" + token);
             log.info("Redis中通过Token获取到的用户ID----------->"+userIdByRedis);
             String userIdByJjwt = JjwtUtil.getUserId(token).toString();
             log.info("解析前端Token获取到的用户ID----------->"+userIdByJjwt);
-            if (StringUtils.isEmpty(userIdByRedis) || !userIdByRedis.equals(userIdByJjwt)){
+            if (!StringUtils.isEmpty(userIdByRedis) && !userIdByRedis.equals(userIdByJjwt)){
                 log.error("Token解析异常----------->前端token与redis的token解析不一致，认证失败");
-                return new TokenAuthSuccess(null,token);
+                return new TokenAuthSuccess(null,null,false);
             }
             log.info("token认证通过，允许后续请求处理");
-            return new TokenAuthSuccess(userIdByRedis,token);
+            return new TokenAuthSuccess(userIdByRedis,token,true);
         }catch (Exception e){
             log.error("Token解析异常----------->" + e.getMessage());
         }

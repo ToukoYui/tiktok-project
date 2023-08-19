@@ -8,6 +8,5 @@ import lombok.Data;
 public class TokenAuthSuccess {
     private String userId;
     private String token;
-
-
+    private Boolean isSuccess;
 }

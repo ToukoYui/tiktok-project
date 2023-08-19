@@ -12,6 +12,7 @@ import com.tiktok.feign_util.utils.UserFeignClient;
 import com.tiktok.model.vo.user.UserVo;
 import com.tiktok.model.vo.video.VideoVo;
 import com.tiktok.service_feed.config.OssPropertiesUtils;
+import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,13 +30,15 @@ public class VideoService {
     @Autowired
     private UserFeignClient userFeignClient;
 
-    // todo 需要微服务调用,调用user服务,获取读者
-    // todo 后续关注功能实现后需要将获取关注的人的视频
-    // 不限制登录状态 返回按照投稿事件倒序的视频列表,视频数有服务端控制,单次最多30个
-    //
-    public List<VideoVo> getVideoList(String latestTimeStr, LocalDateTime lastTime, String userId, String token) {
+    public List<VideoVo> getVideoList(String latestTimeStr, LocalDateTime lastTime,String token) {
+        String userId ="1";
+        UserVo userInfo;
         // 获取用户信息
-        UserVo userInfo = userFeignClient.getUserInfoFromUserModel(userId, token);
+        if (StringUtils.isEmpty(token)){
+           userInfo = userFeignClient.getUserInfoFromUserModelByNotToken(userId);
+        }else{
+            userInfo = userFeignClient.getUserInfoFromUserModel(userId,token);
+        }
         return null;
     }
 

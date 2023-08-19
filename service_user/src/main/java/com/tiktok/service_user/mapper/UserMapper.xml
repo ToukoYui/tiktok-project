@@ -2,16 +2,16 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.tiktok.service_user.mapper.UserMapper">
     <select id="selectByUserName" resultType="com.tiktok.model.entity.user.User">
-        select * from tb_user where username = #{username} for update
+        select * from tb_user where username = #{username}
     </select>
 
     <select id="selectByUserId" resultType="com.tiktok.model.entity.user.User">
-        select * from tb_user where id = #{id} for update
+        select * from tb_user where id = #{id}
     </select>
 
     <!-- 根据用户号和密码查询用户信息 -->
     <select id="selectByUserNameAndPassword" resultType="com.tiktok.model.entity.user.User">
-        select * from tb_user where username = #{username} and password = #{password} for update
+        select * from tb_user where username = #{username} and password = #{password}
     </select>
 
 <!--    保存新用户-->

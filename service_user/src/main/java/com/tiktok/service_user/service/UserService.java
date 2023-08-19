@@ -45,7 +45,7 @@ public class UserService {
                 // 调用接口生成并返回token
                 String token = JjwtUtil.createToken(user.getId(), user.getUsername());
                 userRegisterResp.setUserId(user.getId());
-                userRegisterResp.setStatusCode("200");
+                userRegisterResp.setStatusCode("0");
                 userRegisterResp.setStatusMsg("用户注册成功");
                 userRegisterResp.setToken(token);
 
@@ -88,7 +88,7 @@ public class UserService {
 
         if (StringUtils.isEmpty(username) || StringUtils.isEmpty(password)) {
             userLoginResp.setStatusMsg("用户信息填写有误");
-            userLoginResp.setStatusCode("401");
+            userLoginResp.setStatusCode(401);
         } else {
             // 查询用户
             User user = userMapper.selectByUserNameAndPassword(username, password);
@@ -96,7 +96,7 @@ public class UserService {
                 // 查找到用户则生成一个token并返回给客户端
                 userLoginResp.setUserId(user.getId());
                 userLoginResp.setStatusMsg("登录成功");
-                userLoginResp.setStatusCode("200");
+                userLoginResp.setStatusCode(0);
                 // 调用接口生成并返回token
                 String token = JjwtUtil.createToken(user.getId(), user.getUsername());
                 userLoginResp.setToken(token);
@@ -105,7 +105,7 @@ public class UserService {
                 redisTemplate.opsForValue().set("user:token:" + token, user.getId().toString(), 2, TimeUnit.HOURS);
             } else {
                 userLoginResp.setStatusMsg("未找到用户");
-                userLoginResp.setStatusCode("401");
+                userLoginResp.setStatusCode(401);
             }
         }
         return userLoginResp;

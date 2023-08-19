@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 public class UserLoginResp {
     @JsonProperty("status_code")
-    private String statusCode;
+    private int statusCode;
 
     @JsonProperty("status_msg")
     private String statusMsg;
@@ -19,7 +19,7 @@ public class UserLoginResp {
     public UserLoginResp() {
     }
 
-    public UserLoginResp(String statusCode, String statusMsg, Long userId, String token) {
+    public UserLoginResp(int statusCode, String statusMsg, Long userId, String token) {
         this.statusCode = statusCode;
         this.statusMsg = statusMsg;
         this.userId = userId;
