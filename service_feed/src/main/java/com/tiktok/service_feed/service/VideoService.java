@@ -1,5 +1,6 @@
 package com.tiktok.service_feed.service;
 
+import cn.hutool.core.bean.BeanUtil;
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.ClientConfig;
 import com.qcloud.cos.auth.BasicCOSCredentials;
@@ -45,7 +46,6 @@ public class VideoService {
 
     @Resource
     private RedisTemplate<String, List<VideoVo>> redisTemplate;
-
 
     public List<VideoVo> getVideoList(String lastTime, String token, String userId) {
         System.out.println("lastTime = " + lastTime);

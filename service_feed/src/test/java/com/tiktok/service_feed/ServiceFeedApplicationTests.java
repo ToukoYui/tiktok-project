@@ -27,7 +27,9 @@ class ServiceFeedApplicationTests {
         // 出bug了,两个url变成null了
         List<VideoVo> videoVoList = videos.stream().map(
                 video -> new VideoVo(
-                        video.getId(), null, video.getPlayUrl(), video.getCoverUrl(), 0, 0, false
+                        video.getId(), null, video.getPlayUrl(),
+                        video.getCoverUrl(), 0, 0, false,
+                        video.getTitle(), video.getCreatedTime()
                 )
         ).collect(Collectors.toList());
         for (VideoVo videoVo : videoVoList) {
