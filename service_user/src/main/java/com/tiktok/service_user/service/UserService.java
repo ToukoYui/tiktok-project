@@ -3,7 +3,6 @@ package com.tiktok.service_user.service;
 import cn.hutool.core.bean.BeanUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.tiktok.common_util.utils.JjwtUtil;
-import com.tiktok.model.vo.user.UserResp;
 import com.tiktok.model.vo.user.UserVo;
 import com.tiktok.service_user.mapper.UserMapper;
 import com.tiktok.model.entity.user.User;
@@ -28,7 +27,6 @@ public class UserService {
 
     /**
      * 用户注册功能
-     *
      * @param username
      * @param password
      * @return
@@ -36,7 +34,7 @@ public class UserService {
     public UserRegisterResp userRegister(String username, String password) {
         UserRegisterResp userRegisterResp = new UserRegisterResp();
         // 输入信息非空则进行注册
-        if (!StringUtils.isEmpty(username) && !StringUtils.isEmpty(password)) {
+        if (!StringUtils.isEmpty(username) && !StringUtils.isEmpty(password)){
             // 查询用户
             User user = userMapper.selectByUserNameAndPassword(username, password);
             if (user == null) {
@@ -50,7 +48,7 @@ public class UserService {
                 userRegisterResp.setToken(token);
 
                 // 将token存入redis中
-                redisTemplate.opsForValue().set("user:token:" + token, user.getId().toString(), 2, TimeUnit.HOURS);
+                redisTemplate.opsForValue().set("user:token:" + token,user.getId().toString(),2, TimeUnit.HOURS);
             } else {
                 userRegisterResp.setStatusMsg("用户已存在,请勿重复注册");
                 userRegisterResp.setStatusCode("401");
@@ -77,7 +75,6 @@ public class UserService {
      * 用户登录功能
      * 还需要一个过滤/拦截器来验证token
      * 密码加密
-     *
      * @param username
      * @param password
      * @return
@@ -86,7 +83,7 @@ public class UserService {
         UserLoginResp userLoginResp = new UserLoginResp();
 
 
-        if (StringUtils.isEmpty(username) || StringUtils.isEmpty(password)) {
+        if (StringUtils.isEmpty(username) || StringUtils.isEmpty(password)){
             userLoginResp.setStatusMsg("用户信息填写有误");
             userLoginResp.setStatusCode(401);
         } else {
@@ -102,7 +99,7 @@ public class UserService {
                 userLoginResp.setToken(token);
 
                 // 将token存入redis中
-                redisTemplate.opsForValue().set("user:token:" + token, user.getId().toString(), 2, TimeUnit.HOURS);
+                redisTemplate.opsForValue().set("user:token:" + token,user.getId().toString(),2, TimeUnit.HOURS);
             } else {
                 userLoginResp.setStatusMsg("未找到用户");
                 userLoginResp.setStatusCode(401);
@@ -115,22 +112,21 @@ public class UserService {
     /**
      * 获取用户信息功能
      * 可能会有Long类型转换为String类型的bug
-     *
      * @param userId
      * @return
      */
-    public UserVo getUserInfo(Long userId) {
+    public UserVo getUserInfo(Long userId){
         String key = "user:" + userId;
         // 先去redis中查询,查询不到再去数据库,并存入redis中
         String jsonObjectStr = redisTemplate.opsForValue().get(key);
-        if (jsonObjectStr == null) {
+        if(jsonObjectStr == null){
             // 如果获取不到则去数据库查询,并缓存到redis中
             String id = String.valueOf(userId);
             // 对id进行非空判断
-            if (id != null && !id.equals("")) {
+            if(id != null && !id.equals("")){
                 User user = userMapper.selectByUserId(id);
                 // 如果获取不到user,说明提供的userId有误
-                if (user == null) {
+                if(user == null){
                     // 返回一个空对象
                     return new UserVo();
                 }
@@ -138,13 +134,12 @@ public class UserService {
                 // Long类型的数据转换为String类型可能会出现bug
                 UserVo userVo = BeanUtil.copyProperties(user, UserVo.class);
                 jsonObjectStr = JSONObject.toJSONString(userVo);
-                redisTemplate.opsForValue().set(key, jsonObjectStr, 2, TimeUnit.HOURS);
+                redisTemplate.opsForValue().set(key,jsonObjectStr,2,TimeUnit.HOURS);
             }
         }
         // 转换为对象
-        return JSONObject.parseObject(jsonObjectStr, UserVo.class);
+        return JSONObject.parseObject(jsonObjectStr,UserVo.class);
     }
-
 
     /**
      * 用户注销功能
@@ -156,8 +151,5 @@ public class UserService {
         String token = request.getParameter("token");
         // 删除redis中的token
         return redisTemplate.delete("user:token:" + token);
-
     }
-
-
 }

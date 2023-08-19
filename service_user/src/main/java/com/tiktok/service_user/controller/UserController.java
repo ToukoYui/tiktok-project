@@ -11,6 +11,7 @@ import com.tiktok.model.vo.user.UserLoginResp;
 import com.tiktok.model.vo.user.UserRegisterResp;
 import com.tiktok.model.vo.user.UserResp;
 import com.tiktok.model.vo.user.UserVo;
+import org.springframework.web.context.request.NativeWebRequest;
 
 @RestController
 @RequestMapping("/user")
@@ -68,6 +69,18 @@ public class UserController {
             return new UserResp("403","输入userId有误,请重新输入",null);
         }
         return new UserResp("0","获取用户信息成功",userVo);
+    }
+
+
+    // todo 软件测试---垃圾电脑
+    @GetMapping("/logout")
+    public UserResp userLogout(NativeWebRequest nativeWebRequest) {
+        boolean result = userService.userLogout(nativeWebRequest);
+        if (result) {
+            return new UserResp("200", "注销成功", null);
+        }
+        // 注销失败
+        return new UserResp("200", "注销失败", null);
     }
 
 }
