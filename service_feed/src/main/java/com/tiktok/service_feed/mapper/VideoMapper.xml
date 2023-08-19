@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.tiktok.service_feed.mapper.VideoMapper">
+
+
+
+    <select id="selectVideoByUserId" resultType="com.tiktok.model.entity.video.Video" resultMap="videoMap">
+        select *
+        from tb_video
+        where user_id = #{id}
+    </select>
+
+
     <resultMap id="videoMap" type="com.tiktok.model.entity.video.Video">
         <result property="userId" column="user_id"/>
         <result property="playUrl" column="play_url"/>
@@ -12,4 +22,5 @@
     <select id="getVideoList" resultType="com.tiktok.model.entity.video.Video" resultMap="videoMap">
         select * from tb_video order by #{latestTime} desc limit 30
     </select>
+
 </mapper>

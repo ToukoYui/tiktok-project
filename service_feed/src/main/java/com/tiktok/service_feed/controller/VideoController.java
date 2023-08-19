@@ -12,6 +12,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -23,7 +24,6 @@ import java.util.List;
 public class VideoController {
     @Autowired
     private VideoService videoService;
-
 
     /**
      * 获取视频流信息（包含作者信息）
@@ -52,7 +52,6 @@ public class VideoController {
 
     /**
      * 视频上传
-     *
      * @param multipartFile
      * @param title
      * @param tokenAuthSuccess
@@ -69,5 +68,21 @@ public class VideoController {
         }
         log.info("视频上传成功，上传路径为----------------->" + videoUrl);
         return new PublishResp(200, "视频发布成功");
+    }
+
+    /**
+     * 获取登录用户发布的视频列表,直接列出当前用户所有投稿过的视频
+     *
+     * @param tokenAuthSuccess
+     * @return
+     */
+    @GetMapping("/publish/list")
+    public VideoResp getMyVideoList(@TokenAuthAnno TokenAuthSuccess tokenAuthSuccess) {
+        if (!tokenAuthSuccess.getIsSuccess()) {
+            return new VideoResp("403", "token错误，禁止访问", null, null);
+        }
+        // 获取当前用户发布的视频,并返回
+        List<VideoVo> myVideoList = videoService.getMyVideoList(tokenAuthSuccess);
+        return new VideoResp("200", "获取当前用户视频成功", null, myVideoList);
     }
 }

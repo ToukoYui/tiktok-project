@@ -10,6 +10,7 @@ import com.qcloud.cos.model.PutObjectRequest;
 import com.qcloud.cos.region.Region;
 import com.tiktok.feign_util.utils.UserFeignClient;
 import com.tiktok.model.entity.video.Video;
+import com.tiktok.model.vo.TokenAuthSuccess;
 import com.tiktok.model.vo.user.UserVo;
 import com.tiktok.model.vo.video.VideoVo;
 import com.tiktok.service_feed.config.OssPropertiesUtils;
@@ -22,10 +23,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -36,8 +39,10 @@ import java.util.stream.Collectors;
 public class VideoService {
     @Autowired
     private UserFeignClient userFeignClient;
+
     @Autowired
     private VideoMapper videoMapper;
+
     @Resource
     private RedisTemplate<String, List<VideoVo>> redisTemplate;
 
@@ -134,5 +139,47 @@ public class VideoService {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public List<VideoVo> getMyVideoList(TokenAuthSuccess tokenAuthSuccess) {
+        String userId = tokenAuthSuccess.getUserId();
+        // 查询redis中是否有缓存
+        String redisKey = StringUtils.isEmpty(userId) ? "videolist:public" : "videolist:" + userId;
+
+        List<VideoVo> videoVoListFromRedis = redisTemplate.opsForValue().get(redisKey);
+
+        if (videoVoListFromRedis != null) {
+            log.info("获取视频流，从缓存中获取------------->" + videoVoListFromRedis.toString());
+            return videoVoListFromRedis;
+        }
+
+        // 缓存中没有,查询数据库
+        String token = tokenAuthSuccess.getToken();
+        UserVo userInfo;
+        // 获取当前登录用户的信息
+        if (StringUtils.isEmpty(token)) {
+            userInfo = userFeignClient.getUserInfoFromUserModelByNotToken(userId);
+        } else {
+            userInfo = userFeignClient.getUserInfoFromUserModel(userId, token);
+        }
+        // 根据当前用户id查找已发布的视频
+        List<Video> videos = videoMapper.selectVideoByUserId(userId);
+        if (videos == null) {
+            // 用户id不存在或当前用户未发布视频则返回空
+            return null;
+        }
+        // 将集合中的video数据类型转换为videoVo类型
+        // 交互功能还没实现,数值目前先设置为0
+        List<VideoVo> videoVoList = videos.stream().map(
+                video -> new VideoVo(
+                        video.getId(), userInfo, video.getPlayUrl(),
+                        video.getCoverUrl(), 0, 0, false,
+                        video.getTitle(),video.getCreatedTime()
+                )
+        ).collect(Collectors.toList());
+        // 存入redis
+        redisTemplate.opsForValue().set(redisKey, videoVoList, 3, TimeUnit.MINUTES);
+        return videoVoList;
+
     }
 }
