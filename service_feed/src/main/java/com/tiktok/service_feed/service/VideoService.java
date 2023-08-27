@@ -144,7 +144,7 @@ public class VideoService {
     public List<VideoVo> getMyVideoList(TokenAuthSuccess tokenAuthSuccess) {
         String userId = tokenAuthSuccess.getUserId();
         // 查询redis中是否有缓存
-        String redisKey = StringUtils.isEmpty(userId) ? "videolist:public" : "videolist:" + userId;
+        String redisKey = "videolist:" + userId;
 
         List<VideoVo> videoVoListFromRedis = redisTemplate.opsForValue().get(redisKey);
 
@@ -160,7 +160,8 @@ public class VideoService {
         if (StringUtils.isEmpty(token)) {
             userInfo = userFeignClient.getUserInfoFromUserModelByNotToken(userId);
         } else {
-            userInfo = userFeignClient.getUserInfoFromUserModel(userId, token);
+            // todo
+            userInfo = userFeignClient.getUserInfoFromUserModel(userId, token).getUserVo();
         }
         // 根据当前用户id查找已发布的视频
         List<Video> videos = videoMapper.selectVideoByUserId(userId);
@@ -174,7 +175,7 @@ public class VideoService {
                 video -> new VideoVo(
                         video.getId(), userInfo, video.getPlayUrl(),
                         video.getCoverUrl(), 0, 0, false,
-                        video.getTitle(),video.getCreatedTime()
+                        video.getTitle(), video.getCreatedTime()
                 )
         ).collect(Collectors.toList());
         // 存入redis

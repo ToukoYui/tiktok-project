@@ -18,6 +18,7 @@ class ServiceFeedApplicationTests {
 
     @Test
     void contextLoads() {
+
     }
 
 
@@ -35,8 +36,6 @@ class ServiceFeedApplicationTests {
         for (VideoVo videoVo : videoVoList) {
             System.out.println(videoVo);
         }
-
-
     }
 
 

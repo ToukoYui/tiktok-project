@@ -3,7 +3,6 @@
 <mapper namespace="com.tiktok.service_feed.mapper.VideoMapper">
 
 
-
     <select id="selectVideoByUserId" resultType="com.tiktok.model.entity.video.Video" resultMap="videoMap">
         select *
         from tb_video
@@ -20,7 +19,10 @@
 
 
     <select id="getVideoList" resultType="com.tiktok.model.entity.video.Video" resultMap="videoMap">
-        select * from tb_video order by #{latestTime} desc limit 30
+        select *
+        from tb_video
+        order by #{latestTime} desc
+        limit 30
     </select>
 
 </mapper>

@@ -42,4 +42,9 @@ class ServiceUserApplicationTests {
         Long userId = JjwtUtil.getUserId(token);
         System.out.println(userId);
     }
+
+    @Test
+    void testGetInfoWithToken() {
+
+    }
 }

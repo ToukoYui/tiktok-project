@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiktok.service_comment.mapper.CommentMapper">
+
+    <insert id="publishComment" parameterType="com.tiktok.model.entity.comment.Comment" useGeneratedKeys="true"
+            keyProperty="id">
+        insert into tb_comment(user_id, video_id, content, created_date)
+        values (#{userId}, #{videoId}, #{content}, #{createdDate})
+    </insert>
+
+
+    <delete id="deleteCommentById">
+        delete
+        from tb_comment
+        where id = #{commentId}
+    </delete>
+
+    <resultMap id="commentMap" type="com.tiktok.model.entity.comment.Comment">
+        <result property="userId" column="user_id"/>
+        <result property="videoId" column="video_id"/>
+        <result property="createdDate" column="created_date"/>
+    </resultMap>
+
+
+    <select id="getCommentList" resultType="com.tiktok.model.entity.comment.Comment" resultMap="commentMap">
+        select id, user_id, video_id, content, created_date
+        from tb_comment
+        where video_id = #{videoId}
+        ORDER BY id desc
+    </select>
+
+    <select id="getCommentById" resultType="com.tiktok.model.entity.comment.Comment">
+        select *
+        from tb_comment
+        where user_id = #{userId}
+          AND video_id = #{videoId}
+    </select>
+
+    <select id="getUserById" resultType="java.lang.Long">
+        select user_id
+        from tb_comment
+        where id = #{commentId}
+          AND video_id = #{videoId}
+    </select>
+
+
+</mapper>
