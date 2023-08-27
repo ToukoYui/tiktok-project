@@ -33,7 +33,7 @@ public class ServiceCommentApplicationTests {
         comment.setUserId(1L);
         comment.setVideoId(1L);
         comment.setContent("可以啊,还有这种操作");
-        comment.setCreatedDate(date);
+        comment.setCreate_date(date);
         commentMapper.publishComment(comment);
     }
 

@@ -16,7 +16,7 @@ import java.util.Date;
 public class CommentVo {
     private Long id;
 
-    private UserVo author;
+    private UserVo user;
 
     @JsonProperty("video_id")
     private Long videoId;
@@ -24,8 +24,8 @@ public class CommentVo {
     private String content;
 
     @JsonFormat(pattern = "mm-dd")
-    @JsonProperty("created_date")
-    private String createdDate;
+    @JsonProperty("create_date")
+    private String create_date;
 
     @JsonProperty("like_count")
     private int likeCount;

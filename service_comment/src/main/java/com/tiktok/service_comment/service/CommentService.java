@@ -78,7 +78,7 @@ public class CommentService {
         } else {
             userInfo = userFeignClient.getUserInfoFromUserModel(userId, token).getUserVo();
         }
-        commentVo.setAuthor(userInfo);
+        commentVo.setUser(userInfo);
 
         // 删除缓存
         redisTemplate.delete("commentlist:" + videoId);
@@ -113,7 +113,7 @@ public class CommentService {
                     UserVo userInfo = userFeignClient.getUserInfoFromUserModelByNotToken(userId);
                     CommentVo commentVo = new CommentVo();
                     BeanUtil.copyProperties(comment, commentVo);
-                    commentVo.setAuthor(userInfo);
+                    commentVo.setUser(userInfo);
                     // todo 评论点赞数量
                     return commentVo;
                 }

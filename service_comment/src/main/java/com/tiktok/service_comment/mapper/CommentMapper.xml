@@ -5,7 +5,7 @@
     <insert id="publishComment" parameterType="com.tiktok.model.entity.comment.Comment" useGeneratedKeys="true"
             keyProperty="id">
         insert into tb_comment(user_id, video_id, content, created_date)
-        values (#{userId}, #{videoId}, #{content}, #{createdDate})
+        values (#{userId}, #{videoId}, #{content}, #{create_date})
     </insert>
 
 
@@ -18,7 +18,7 @@
     <resultMap id="commentMap" type="com.tiktok.model.entity.comment.Comment">
         <result property="userId" column="user_id"/>
         <result property="videoId" column="video_id"/>
-        <result property="createdDate" column="created_date"/>
+        <result property="create_date" column="created_date"/>
     </resultMap>
 
 

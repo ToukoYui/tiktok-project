@@ -50,7 +50,10 @@ public class VideoService {
     public List<VideoVo> getVideoList(String lastTime, String token, String userId) {
         System.out.println("lastTime = " + lastTime);
         // 查询redis中是否有缓存
-        String redisKey = StringUtils.isEmpty(userId) ? "videolist:public" : "videolist:" + userId;
+        // 这里直接public就好了,因为退出应用不代表用户就退出
+        // 这样你再次登录的时候会获取的是该用户的发布视频
+        // 如果用户没有发布视频,controller返回-1就会异常
+        String redisKey = "videolist:public";
         List<VideoVo> videoVoListFromRedis = redisTemplate.opsForValue().get(redisKey);
         if (videoVoListFromRedis != null) {
             log.info("获取视频流，从缓存中获取------------->" + videoVoListFromRedis.toString());

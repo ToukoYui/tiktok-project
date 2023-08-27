@@ -22,13 +22,13 @@ public class Comment {
     private String content;
 
     @JsonFormat(pattern = "mm-dd")
-    @JsonProperty("created_date")
-    private String createdDate;
+    @JsonProperty("create_date")
+    private String create_date;
 
-    public Comment(Long userId, Long videoId, String content, String createdDate) {
+    public Comment(Long userId, Long videoId, String content, String create_date) {
         this.userId = userId;
         this.videoId = videoId;
         this.content = content;
-        this.createdDate = createdDate;
+        this.create_date = create_date;
     }
 }
