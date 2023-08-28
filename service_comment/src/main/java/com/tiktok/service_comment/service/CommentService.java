@@ -58,7 +58,12 @@ public class CommentService {
     public CommentVo publishComment(TokenAuthSuccess tokenAuthSuccess, Long videoId, String commentText) {
         // 获取当前登录用户id
         String token = tokenAuthSuccess.getToken();
-        Long userId = redisTemplateLong.opsForValue().get("user:token:" + token);
+        /*
+           json序列化器有个坑：从redis获取Long值最终拿到的是Integer类型，
+           如果直接赋值给Long引用会抛Integer无法转化为Long异常,这里用Object接收
+         */
+        Object object = redisTemplateLong.opsForValue().get("user:token:" + token);
+        Long userId = Long.valueOf((Integer) object);
 
         // 获取当前日期 mm-dd
         long current = System.currentTimeMillis();

@@ -7,7 +7,6 @@ import com.tiktok.model.vo.comment.CommentListResp;
 import com.tiktok.model.vo.comment.CommentVo;
 import com.tiktok.service_comment.service.CommentService;
 import lombok.extern.slf4j.Slf4j;
-import netscape.security.UserTarget;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

@@ -20,7 +20,7 @@ import java.util.Date;
 import java.util.List;
 
 @Slf4j
-@RestController
+@RestController()
 public class VideoController {
     @Autowired
     private VideoService videoService;

@@ -1,8 +1,6 @@
 package com.tiktok.service_comment.config;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.alibaba.fastjson.support.spring.GenericFastJsonRedisSerializer;
 import com.tiktok.model.vo.comment.CommentVo;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,14 +23,7 @@ public class RedisConfig {
         // 设置key的序列化器
         template.setKeySerializer(new StringRedisSerializer());
         // 设置value的序列化器
-        //使用Jackson 2，将对象序列化为JSON
-        Jackson2JsonRedisSerializer jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer(Object.class);
-        //json转对象类，不设置默认的会将json转成hashmap
-        ObjectMapper om = new ObjectMapper();
-        om.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
-        om.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
-        jackson2JsonRedisSerializer.setObjectMapper(om);
-        template.setValueSerializer(jackson2JsonRedisSerializer);
+        template.setValueSerializer(new GenericFastJsonRedisSerializer());
         return template;
     }
 
@@ -45,13 +36,8 @@ public class RedisConfig {
         template.setKeySerializer(new StringRedisSerializer());
         // 设置value的序列化器
         //使用Jackson 2，将对象序列化为JSON
-        Jackson2JsonRedisSerializer jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer(Object.class);
-        //json转对象类，不设置默认的会将json转成hashmap
-        ObjectMapper om = new ObjectMapper();
-        om.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
-        om.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
-        jackson2JsonRedisSerializer.setObjectMapper(om);
-        template.setValueSerializer(jackson2JsonRedisSerializer);
+        GenericFastJsonRedisSerializer fastJsonRedisSerializer = new GenericFastJsonRedisSerializer();
+        template.setValueSerializer(fastJsonRedisSerializer);
         return template;
     }
 }
