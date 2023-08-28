@@ -12,7 +12,7 @@ public interface CommentMapper {
 
     int deleteCommentById(Long commentId);
 
-    List<Comment> getCommentList(Long videoId);
+    List<Comment> getCommentList(Long videoId,Long start,Long end );
 
     Comment getCommentById(String userId, Long videoId);
 

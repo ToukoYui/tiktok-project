@@ -27,6 +27,7 @@
         from tb_comment
         where video_id = #{videoId}
         ORDER BY id desc
+        limit #{start},#{end}
     </select>
 
     <select id="getCommentById" resultType="com.tiktok.model.entity.comment.Comment">

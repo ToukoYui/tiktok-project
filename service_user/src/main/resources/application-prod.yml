@@ -14,6 +14,9 @@ spring:
 #    type: com.alibaba.druid.pool.DruidDataSource
     username: ENC(5Ev24JNagGONP1Ca9+xZWg==)
     password: ENC(lQ3mg76A7j6WOm/j8zQ5dyfaDa06L4FX)
+    hikari:
+      max-lifetime: 120000  #连接存活两分钟
+      maximum-pool-size: 300
 
   redis:
     host: 8.134.208.93

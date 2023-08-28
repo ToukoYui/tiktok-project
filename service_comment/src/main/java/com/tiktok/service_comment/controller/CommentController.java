@@ -7,6 +7,7 @@ import com.tiktok.model.vo.comment.CommentListResp;
 import com.tiktok.model.vo.comment.CommentVo;
 import com.tiktok.service_comment.service.CommentService;
 import lombok.extern.slf4j.Slf4j;
+import netscape.security.UserTarget;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,7 +36,7 @@ public class CommentController {
                                         @RequestParam("video_id") Long videoId,
                                         @RequestParam("action_type") int actionType,
                                         @RequestParam("comment_text") String commentText
-                                        ) {
+    ) {
         if (!tokenAuthSuccess.getIsSuccess()) {
             return new CommentActionResp("403", "token错误，禁止访问", null);
         }
@@ -52,6 +53,7 @@ public class CommentController {
      * 视频评论列表
      * 查看该视频的所有评论,按发布时间倒序
      * 不需要登录也可以查看
+     *
      * @param tokenAuthSuccess
      * @param videoId
      * @return
@@ -59,8 +61,9 @@ public class CommentController {
     @GetMapping("/list")
     public CommentListResp getCommentList(@TokenAuthAnno TokenAuthSuccess tokenAuthSuccess,
                                           @RequestParam("video_id") Long videoId) {
+        Long start = 0L, end = 299L;
         // 不需要身份验证,任何人都可以查看评论
-        List<CommentVo> commentVoList = commentService.getCommentList(tokenAuthSuccess, videoId);
+        List<CommentVo> commentVoList = commentService.getCommentList(tokenAuthSuccess, videoId, start, end);
         return new CommentListResp("0", "获取评论列表成功", commentVoList);
     }
 

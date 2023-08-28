@@ -67,7 +67,7 @@ public class VideoController {
             return new PublishResp(400, "视频发布失败");
         }
         log.info("视频上传成功，上传路径为----------------->" + videoUrl);
-        return new PublishResp(200, "视频发布成功");
+        return new PublishResp(0, "视频发布成功");
     }
 
     /**
@@ -83,6 +83,7 @@ public class VideoController {
         }
         // 获取当前用户发布的视频,并返回
         List<VideoVo> myVideoList = videoService.getMyVideoList(tokenAuthSuccess);
-        return new VideoResp("200", "获取当前用户视频成功", null, myVideoList);
+        return new VideoResp("0", "获取当前用户视频成功", null, myVideoList);
     }
+
 }

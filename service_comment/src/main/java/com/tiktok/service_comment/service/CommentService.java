@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -34,11 +35,14 @@ public class CommentService {
     @Autowired
     private CommentMapper commentMapper;
 
-    @Resource
-    private RedisTemplate<String, List<CommentVo>> redisTemplate;
+    @Autowired
+    private RedisTemplate<String, Long> redisTemplateLong;
 
     @Autowired
-    private StringRedisTemplate stringRedisTemplate;
+    private RedisTemplate<String, CommentVo> redisTemplateCommentVo;
+
+    @Autowired
+    private StringRedisTemplate redisTemplateString;
 
     /**
      * 发布评论
@@ -54,7 +58,7 @@ public class CommentService {
     public CommentVo publishComment(TokenAuthSuccess tokenAuthSuccess, Long videoId, String commentText) {
         // 获取当前登录用户id
         String token = tokenAuthSuccess.getToken();
-        String userId = stringRedisTemplate.opsForValue().get("user:token:" + token);
+        Long userId = redisTemplateLong.opsForValue().get("user:token:" + token);
 
         // 获取当前日期 mm-dd
         long current = System.currentTimeMillis();
@@ -62,7 +66,7 @@ public class CommentService {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("MM-dd");
         String date = simpleDateFormat.format(currentDate);
 
-        Comment comment = new Comment(Long.valueOf(userId), videoId, commentText, date);
+        Comment comment = new Comment(userId, videoId, commentText, date);
         // 存到数据库中
         // 使用mybatis提供的自增id策略,这样就不用再去访问数据库
         commentMapper.publishComment(comment);
@@ -74,14 +78,15 @@ public class CommentService {
         // 获取当前登录用户的信息
         // token是有可能为空的
         if (StringUtils.isEmpty(token)) {
-            userInfo = userFeignClient.getUserInfoFromUserModelByNotToken(userId);
+            userInfo = userFeignClient.getUserInfoFromUserModelByNotToken(String.valueOf(userId));
         } else {
-            userInfo = userFeignClient.getUserInfoFromUserModel(userId, token).getUserVo();
+            userInfo = userFeignClient.getUserInfoFromUserModel(String.valueOf(userId), token).getUserVo();
         }
         commentVo.setUser(userInfo);
 
-        // 删除缓存
-        redisTemplate.delete("commentlist:" + videoId);
+        // 清空该视频的所有评论id列表缓存，但单个的具体评论不仍然留着
+        String deleteKey = "comment:" + videoId + ":commentIdList:*";
+        redisTemplateLong.delete(redisTemplateString.keys(deleteKey));
 
         return commentVo;
     }
@@ -94,17 +99,24 @@ public class CommentService {
      * @param videoId
      * @return
      */
-    public List<CommentVo> getCommentList(TokenAuthSuccess tokenAuthSuccess, Long videoId) {
+    public List<CommentVo> getCommentList(TokenAuthSuccess tokenAuthSuccess, Long videoId, Long start, Long end) {
         // 查询redis中是否有缓存
-        String key = "commentlist:" + videoId;
-        List<CommentVo> commentVos = redisTemplate.opsForValue().get(key);
-        if (commentVos != null) {
-            log.info("获取视频评论，从缓存中获取------------->" + commentVos.toString());
-            return commentVos;
+        String key = "comment:" + videoId + ":commentIdList:" + "index-" + start + "_" + end; // "comment:1:commentIdList:index-0_299“
+        // 先拿前300条
+        List<Long> commentIdListFromRedis = redisTemplateLong.opsForList().range(key, 0, 299);
+        String keyPre = "comment:" + videoId + ":commentString:";
+        if (commentIdListFromRedis.size() != 0) {
+            log.info("获取视频评论id列表，从缓存中获取------------->" + commentIdListFromRedis);
+            // 遍历id列表缓存，查询具体评论对象
+            List<CommentVo> commentVoList = commentIdListFromRedis.stream().map((commentId) ->
+                    redisTemplateCommentVo.opsForValue().get(keyPre + commentId)
+            ).collect(Collectors.toList());
+            return commentVoList;
         }
 
-        // 缓存中没有,查询数据库
-        List<Comment> commentList = commentMapper.getCommentList(videoId);
+        // 缓存中没有,查询数据库中最新的【start，end】评论
+        List<Comment> commentList = commentMapper.getCommentList(videoId, start, end);
+        List<Long> commentIdListFromMysql = new ArrayList<>();
         // 封装数据
         List<CommentVo> commentVoList = commentList.stream().map(
                 (comment) -> {
@@ -114,12 +126,15 @@ public class CommentService {
                     CommentVo commentVo = new CommentVo();
                     BeanUtil.copyProperties(comment, commentVo);
                     commentVo.setUser(userInfo);
-                    // todo 评论点赞数量
+                    // 具体评论json单独存入redis中
+                    redisTemplateCommentVo.opsForValue().set(keyPre + comment.getId(), commentVo, 3, TimeUnit.MINUTES);
+                    commentIdListFromMysql.add(comment.getId());
                     return commentVo;
                 }
         ).collect(Collectors.toList());
-        // 存入redis中
-        redisTemplate.opsForValue().set(key, commentVoList, 3, TimeUnit.MINUTES);
+        // 将评论id列表存入redis中
+        redisTemplateLong.opsForList().rightPushAll(key, commentIdListFromMysql);
+        // 评论
         return commentVoList;
     }
 }
