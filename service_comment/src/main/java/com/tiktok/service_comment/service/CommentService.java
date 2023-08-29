@@ -6,22 +6,17 @@ import com.tiktok.model.entity.comment.Comment;
 import com.tiktok.model.vo.TokenAuthSuccess;
 import com.tiktok.model.vo.comment.CommentVo;
 import com.tiktok.model.vo.user.UserVo;
-import com.tiktok.model.vo.video.VideoVo;
 import com.tiktok.service_comment.mapper.CommentMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -142,4 +137,5 @@ public class CommentService {
         // 评论
         return commentVoList;
     }
+
 }

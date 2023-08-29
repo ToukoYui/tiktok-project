@@ -9,6 +9,7 @@ import com.qcloud.cos.http.HttpProtocol;
 import com.qcloud.cos.model.ObjectMetadata;
 import com.qcloud.cos.model.PutObjectRequest;
 import com.qcloud.cos.region.Region;
+import com.tiktok.feign_util.utils.CommentFeignClient;
 import com.tiktok.feign_util.utils.UserFeignClient;
 import com.tiktok.model.entity.video.Video;
 import com.tiktok.model.vo.TokenAuthSuccess;
@@ -42,6 +43,9 @@ public class VideoService {
     private UserFeignClient userFeignClient;
 
     @Autowired
+    private CommentFeignClient commentFeignClient;
+
+    @Autowired
     private VideoMapper videoMapper;
 
     @Resource
@@ -52,7 +56,7 @@ public class VideoService {
         // 查询redis中是否有缓存
         // 这里直接public就好了,因为退出应用不代表用户就退出
         // 这样你再次登录的时候会获取的是该用户的发布视频
-        // 如果用户没有发布视频,controller返回-1就会异常
+        // 如果用户没有发布视频,controller那的下标就会返回-1就会异常
         String redisKey = "videolist:public";
         List<VideoVo> videoVoListFromRedis = redisTemplate.opsForValue().get(redisKey);
         if (videoVoListFromRedis != null) {
@@ -73,6 +77,8 @@ public class VideoService {
             videoVo.setAuthor(userInfo);
             // todo 获取点赞数
             // todo 获取评论数
+
+
             return videoVo;
         }).collect(Collectors.toList());
         // 存入redis
