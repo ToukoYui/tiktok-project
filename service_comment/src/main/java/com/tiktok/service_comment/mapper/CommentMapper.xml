@@ -44,5 +44,9 @@
           AND video_id = #{videoId}
     </select>
 
+    <select id="queryCommentNumByVideoId" resultType="java.lang.Integer">
+        select count(*) from tb_comment where video_id = #{videoId}
+    </select>
+
 
 </mapper>

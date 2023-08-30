@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,18 +25,28 @@ class ServiceFeedApplicationTests {
 
     @Test
     void testGetVideoList() {
-        List<Video> videos = videoMapper.selectVideoByUserId(String.valueOf(1));
-        // 出bug了,两个url变成null了
-        List<VideoVo> videoVoList = videos.stream().map(
-                video -> new VideoVo(
-                        video.getId(), null, video.getPlayUrl(),
-                        video.getCoverUrl(), 0, 0, false,
-                        video.getTitle(), video.getCreatedTime()
-                )
-        ).collect(Collectors.toList());
-        for (VideoVo videoVo : videoVoList) {
-            System.out.println(videoVo);
-        }
+//        List<Video> videos = videoMapper.selectVideoByUserId(String.valueOf(1));
+//        // 出bug了,两个url变成null了
+//        List<VideoVo> videoVoList = videos.stream().map(
+//                video -> new VideoVo(
+//                        video.getId(), null, video.getPlayUrl(),
+//                        video.getCoverUrl(), 0, 0, false,
+//                        video.getTitle(), video.getCreatedTime()
+//                )
+//        ).collect(Collectors.toList());
+//        for (VideoVo videoVo : videoVoList) {
+//            System.out.println(videoVo);
+//        }
+    }
+
+    @Test
+    void testGetVideoList1() {
+        Video video = new Video();
+        LocalDateTime now = LocalDateTime.now();
+        video.setCreatedTime(now);
+        video.setTitle("nihao");
+        videoMapper.insertVideo(video);
+
     }
 
 

@@ -13,9 +13,9 @@ public interface UserFeignClient {
     // 参数必须带上@RequestParam注解指明，否则无法识别
     // 这里的返回值类型不一样
     @GetMapping("/douyin/user")
-    UserResp getUserInfoFromUserModel(@RequestParam("user_id") String userId, @RequestParam("token") String token);
+    UserResp getUserInfoFromUserModule(@RequestParam("user_id") String userId, @RequestParam("token") String token);
 
     // 无token调用，内部用
     @GetMapping("/douyin/user/inner")
-    UserVo getUserInfoFromUserModelByNotToken(@RequestParam("user_id") String userId);
+    UserVo getUserInfoFromUserModuleByNotToken(@RequestParam("user_id") String userId);
 }

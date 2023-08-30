@@ -13,4 +13,6 @@ public interface VideoMapper {
 
     List<Video> selectVideoByUserId(@Param("id") String id);
 
+    void insertVideo(Video video);
+
 }

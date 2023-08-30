@@ -17,4 +17,6 @@ public interface CommentMapper {
     Comment getCommentById(String userId, Long videoId);
 
     Long getUserById(Long videoId, Long commentId);
+
+    Integer queryCommentNumByVideoId(Long videoId);
 }

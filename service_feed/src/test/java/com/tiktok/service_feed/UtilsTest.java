@@ -49,4 +49,18 @@ public class UtilsTest {
         System.out.println("lastTime = " + lastTime);
     }
 
+
+    @Test
+    void testTime2(){
+        LocalDateTime now = LocalDateTime.now();
+        System.out.println(now);
+
+
+        String s1 = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        System.out.println(s1);
+
+        LocalDateTime parse = LocalDateTime.parse(s1, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        System.out.println("parse = " + parse);
+    }
+
 }
