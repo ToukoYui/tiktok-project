@@ -34,7 +34,8 @@ public class CommentController {
     public CommentActionResp getComment(@TokenAuthAnno TokenAuthSuccess tokenAuthSuccess,
                                         @RequestParam("video_id") Long videoId,
                                         @RequestParam("action_type") int actionType,
-                                        @RequestParam("comment_text") String commentText
+                                        @RequestParam(value = "comment_text",required = false) String commentText,
+                                        @RequestParam(value = "comment_id",required = false) String commentId
     ) {
         if (!tokenAuthSuccess.getIsSuccess()) {
             return new CommentActionResp("403", "token错误，禁止访问", null);
@@ -43,6 +44,8 @@ public class CommentController {
         if (actionType == 1) {
             // 发布评论
             commentVo = commentService.publishComment(tokenAuthSuccess, videoId, commentText);
+        } else {
+            commentService.deleteComment(Long.parseLong(commentId),videoId);
         }
         return new CommentActionResp("0", actionType == 1 ? "评论成功" : "评论删除成功", commentVo);
     }
@@ -66,5 +69,14 @@ public class CommentController {
         return new CommentListResp("0", "获取评论列表成功", commentVoList);
     }
 
-
+    /**
+     * 内部接口，查询某个视频的评论数
+     *
+     * @param videoId
+     * @return
+     */
+    @GetMapping("/inner/count")
+    public Integer getCommentNum(Long videoId) {
+        return commentService.getCommentCount(videoId);
+    }
 }

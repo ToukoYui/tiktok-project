@@ -9,7 +9,7 @@ import com.qcloud.cos.http.HttpProtocol;
 import com.qcloud.cos.model.ObjectMetadata;
 import com.qcloud.cos.model.PutObjectRequest;
 import com.qcloud.cos.region.Region;
-import com.tiktok.feign_util.utils.CommentFeignClient;
+import com.tiktok.feign_util.utils.CommentFeigClient;
 import com.tiktok.feign_util.utils.UserFeignClient;
 import com.tiktok.model.entity.video.Video;
 import com.tiktok.model.vo.TokenAuthSuccess;
@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -40,10 +41,10 @@ import java.util.stream.Collectors;
 @Service
 public class VideoService {
     @Autowired
-    private UserFeignClient userFeignClient;
+    private CommentFeigClient commentFeigClient;
 
     @Autowired
-    private CommentFeignClient commentFeignClient;
+    private UserFeignClient userFeignClient;
 
     @Autowired
     private VideoMapper videoMapper;
@@ -56,7 +57,7 @@ public class VideoService {
         // 查询redis中是否有缓存
         // 这里直接public就好了,因为退出应用不代表用户就退出
         // 这样你再次登录的时候会获取的是该用户的发布视频
-        // 如果用户没有发布视频,controller那的下标就会返回-1就会异常
+        // 如果用户没有发布视频,controller返回-1就会异常
         String redisKey = "videolist:public";
         List<VideoVo> videoVoListFromRedis = redisTemplate.opsForValue().get(redisKey);
         if (videoVoListFromRedis != null) {
@@ -71,14 +72,14 @@ public class VideoService {
         List<VideoVo> videoVoList = videoList.stream().map((video) -> {
             String authorId = video.getUserId().toString();
             // 获取投稿视频的用户信息
-            UserVo userInfo = userFeignClient.getUserInfoFromUserModelByNotToken(authorId);
+            UserVo userInfo = userFeignClient.getUserInfoFromUserModuleByNotToken(authorId);
             VideoVo videoVo = new VideoVo();
             BeanUtils.copyProperties(video, videoVo);
             videoVo.setAuthor(userInfo);
             // todo 获取点赞数
-            // todo 获取评论数
-
-
+            // 获取评论数
+            Integer commentCount = commentFeigClient.getCommnetNumFromCommentModule(video.getId());
+            videoVo.setCommentCount(commentCount);
             return videoVo;
         }).collect(Collectors.toList());
         // 存入redis
@@ -111,7 +112,7 @@ public class VideoService {
     }
 
     // 上传文件到腾讯云后返回该存储文件的url
-    public String uploadVideo(MultipartFile multipartFile, String title) {
+    public String uploadVideo(MultipartFile multipartFile, String title,String userId) {
         // 获取文件名及后缀
         String originalFilename = multipartFile.getOriginalFilename();
         // 获取文件后缀
@@ -126,7 +127,7 @@ public class VideoService {
         String dateString = new DateTime().toString("yyyy/MM/dd");
         // 生成视频和封面的上传存储路径
         String videoKey = "video/" + dateString + "/" + uuid + originalFilename;
-        String coverKey = "picture/" + dateString + "/" + uuid + fileName + ".jpg";
+        String coverKey = "picture/video/" + dateString + "/" + uuid + fileName + ".jpg";
         //生成cos客户端
         COSClient cosClient = getCosClient();
         String bucketName = OssPropertiesUtils.BUCKET;
@@ -137,12 +138,19 @@ public class VideoService {
             // 上传视频
             PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, videoKey, inputStream, objectMetadata);
             cosClient.putObject(putObjectRequest);
-            // todo 保存视频信息到数据库
-
             // 获取视频链接
             URL objectUrl = cosClient.getObjectUrl(bucketName, videoKey);
             cosClient.shutdown();
             inputStream.close();
+
+            // 保存视频信息到数据库
+            Video video = new Video();
+            video.setUserId(Long.valueOf(userId));
+            video.setPlayUrl(objectUrl.toString());
+            video.setCoverUrl("https://"+ bucketName + ".cos." + OssPropertiesUtils.COS_REGION + ".myqcloud.com/" +coverKey);
+            video.setTitle(title);
+            video.setCreatedTime(LocalDateTime.now());
+            videoMapper.insertVideo(video);
             return objectUrl.toString();
         } catch (IOException e) {
             e.printStackTrace();
@@ -167,10 +175,9 @@ public class VideoService {
         UserVo userInfo;
         // 获取当前登录用户的信息
         if (StringUtils.isEmpty(token)) {
-            userInfo = userFeignClient.getUserInfoFromUserModelByNotToken(userId);
+            userInfo = userFeignClient.getUserInfoFromUserModuleByNotToken(userId);
         } else {
-            // todo
-            userInfo = userFeignClient.getUserInfoFromUserModel(userId, token).getUserVo();
+            userInfo = userFeignClient.getUserInfoFromUserModule(userId, token).getUserVo();
         }
         // 根据当前用户id查找已发布的视频
         List<Video> videos = videoMapper.selectVideoByUserId(userId);

@@ -6,17 +6,22 @@ import com.tiktok.model.entity.comment.Comment;
 import com.tiktok.model.vo.TokenAuthSuccess;
 import com.tiktok.model.vo.comment.CommentVo;
 import com.tiktok.model.vo.user.UserVo;
+import com.tiktok.model.vo.video.VideoVo;
 import com.tiktok.service_comment.mapper.CommentMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -78,9 +83,9 @@ public class CommentService {
         // 获取当前登录用户的信息
         // token是有可能为空的
         if (StringUtils.isEmpty(token)) {
-            userInfo = userFeignClient.getUserInfoFromUserModelByNotToken(String.valueOf(userId));
+            userInfo = userFeignClient.getUserInfoFromUserModuleByNotToken(String.valueOf(userId));
         } else {
-            userInfo = userFeignClient.getUserInfoFromUserModel(String.valueOf(userId), token).getUserVo();
+            userInfo = userFeignClient.getUserInfoFromUserModule(String.valueOf(userId), token).getUserVo();
         }
         commentVo.setUser(userInfo);
 
@@ -118,24 +123,46 @@ public class CommentService {
         List<Comment> commentList = commentMapper.getCommentList(videoId, start, end);
         List<Long> commentIdListFromMysql = new ArrayList<>();
         // 封装数据
-        List<CommentVo> commentVoList = commentList.stream().map(
-                (comment) -> {
-                    String userId = comment.getUserId().toString();
-                    // 获取用户信息
-                    UserVo userInfo = userFeignClient.getUserInfoFromUserModelByNotToken(userId);
-                    CommentVo commentVo = new CommentVo();
-                    BeanUtil.copyProperties(comment, commentVo);
-                    commentVo.setUser(userInfo);
-                    // 具体评论json单独存入redis中
-                    redisTemplateCommentVo.opsForValue().set(keyPre + comment.getId(), commentVo, 3, TimeUnit.MINUTES);
-                    commentIdListFromMysql.add(comment.getId());
-                    return commentVo;
-                }
-        ).collect(Collectors.toList());
-        // 将评论id列表存入redis中
-        redisTemplateLong.opsForList().rightPushAll(key, commentIdListFromMysql);
+        List<CommentVo> commentVoList = new ArrayList<>();
+        if(commentList.size() >0) {
+            commentVoList = commentList.stream().map(
+                    (comment) -> {
+                        String userId = comment.getUserId().toString();
+                        // 获取用户信息
+                        UserVo userInfo = userFeignClient.getUserInfoFromUserModuleByNotToken(userId);
+                        CommentVo commentVo = new CommentVo();
+                        BeanUtil.copyProperties(comment, commentVo);
+                        commentVo.setUser(userInfo);
+                        // 具体评论json单独存入redis中
+                        redisTemplateCommentVo.opsForValue().set(keyPre + comment.getId(), commentVo, 3, TimeUnit.MINUTES);
+                        commentIdListFromMysql.add(comment.getId());
+                        return commentVo;
+                    }
+            ).collect(Collectors.toList());
+            // 将评论id列表存入redis中
+            redisTemplateLong.opsForList().rightPushAll(key, commentIdListFromMysql);
+        }
         // 评论
         return commentVoList;
     }
 
+    /**
+     * 获取视频的评论数
+     * @param videoId
+     * @return
+     */
+    public Integer getCommentCount(Long videoId){
+        return commentMapper.queryCommentNumByVideoId(videoId);
+    }
+
+    /**
+     * 删除某条评论
+     * @param commentId
+     */
+    public void deleteComment(Long commentId,Long videoId){
+        commentMapper.deleteCommentById(commentId);
+        // 清空评论id列表缓存
+        String deleteKey = "comment:" + videoId + ":commentIdList:*";
+        redisTemplateLong.delete(redisTemplateString.keys(deleteKey));
+    }
 }

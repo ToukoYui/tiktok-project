@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
@@ -45,8 +46,8 @@ public class VideoController {
         // 获取视频
         List<VideoVo> videoVoList = videoService.getVideoList(lastTime, tokenAuthSuccess.getToken(),tokenAuthSuccess.getUserId());
         // 获取最早发布的视频的发布时间
-        Date nextTime = videoVoList.get(videoVoList.size() - 1).getCreatedTime();
-        Integer nextTimeInt = Math.toIntExact(nextTime.getTime() / 1000);
+        LocalDateTime nextTime = videoVoList.get(videoVoList.size() - 1).getCreatedTime();
+        Integer nextTimeInt = Math.toIntExact(nextTime.toEpochSecond(ZoneOffset.of("+8")));
         return new VideoResp("0", "获取视频流成功", nextTimeInt, videoVoList);
     }
 
@@ -62,7 +63,7 @@ public class VideoController {
         if (!tokenAuthSuccess.getIsSuccess()) {
             return new PublishResp(403, "token错误，禁止访问");
         }
-        String videoUrl = videoService.uploadVideo(multipartFile, title);
+        String videoUrl = videoService.uploadVideo(multipartFile, title,tokenAuthSuccess.getUserId());
         if (StringUtils.isEmpty(videoUrl)) {
             return new PublishResp(400, "视频发布失败");
         }
