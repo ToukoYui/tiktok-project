@@ -1,0 +1,7 @@
+package com.tiktok.service_favorite.mapper;
+
+import org.apache.ibatis.annotations.Mapper;
+
+@Mapper
+public interface FavoriteMapper {
+}
