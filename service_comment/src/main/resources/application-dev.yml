@@ -5,7 +5,7 @@ server:
 
 spring:
   application:
-    name: service-user
+    name: service-comment
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver

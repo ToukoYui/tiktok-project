@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Repository
 @FeignClient("service-comment")
 public interface CommentFeignClient {
-
-
+    // 无token调用，内部用
+    @GetMapping("/douyin/comment/inner/count")
+    Integer getCommnetNumFromCommentModule(@RequestParam("videoId") Long videoId);
 }

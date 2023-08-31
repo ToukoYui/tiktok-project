@@ -1,6 +1,5 @@
 package com.tiktok.service_feed.service;
 
-import cn.hutool.core.bean.BeanUtil;
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.ClientConfig;
 import com.qcloud.cos.auth.BasicCOSCredentials;
@@ -9,7 +8,7 @@ import com.qcloud.cos.http.HttpProtocol;
 import com.qcloud.cos.model.ObjectMetadata;
 import com.qcloud.cos.model.PutObjectRequest;
 import com.qcloud.cos.region.Region;
-import com.tiktok.feign_util.utils.CommentFeigClient;
+import com.tiktok.feign_util.utils.CommentFeignClient;
 import com.tiktok.feign_util.utils.UserFeignClient;
 import com.tiktok.model.entity.video.Video;
 import com.tiktok.model.vo.TokenAuthSuccess;
@@ -22,7 +21,6 @@ import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -41,7 +39,7 @@ import java.util.stream.Collectors;
 @Service
 public class VideoService {
     @Autowired
-    private CommentFeigClient commentFeigClient;
+    private CommentFeignClient commentFeignClient;
 
     @Autowired
     private UserFeignClient userFeignClient;
@@ -78,7 +76,7 @@ public class VideoService {
             videoVo.setAuthor(userInfo);
             // todo 获取点赞数
             // 获取评论数
-            Integer commentCount = commentFeigClient.getCommnetNumFromCommentModule(video.getId());
+            Integer commentCount = commentFeignClient.getCommnetNumFromCommentModule(video.getId());
             videoVo.setCommentCount(commentCount);
             return videoVo;
         }).collect(Collectors.toList());
