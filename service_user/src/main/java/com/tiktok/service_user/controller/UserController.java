@@ -85,12 +85,7 @@ public class UserController {
 
     @GetMapping("/logout")
     public UserResp userLogout(NativeWebRequest nativeWebRequest) {
-        boolean result = userService.userLogout(nativeWebRequest);
-        if (result) {
-            return new UserResp("0", "注销成功", null);
-        }
-        // 注销失败
-        return new UserResp("400", "注销失败", null);
+        return new UserResp("0", "注销成功", null);
     }
 
 }

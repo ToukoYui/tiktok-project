@@ -7,6 +7,7 @@ import com.tiktok.model.vo.comment.CommentListResp;
 import com.tiktok.model.vo.comment.CommentVo;
 import com.tiktok.service_comment.service.CommentService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,7 +39,7 @@ public class CommentController {
                                         @RequestParam(value = "comment_id",required = false) String commentId
     ) {
         if (!tokenAuthSuccess.getIsSuccess()) {
-            return new CommentActionResp("403", "token错误，禁止访问", null);
+            return new CommentActionResp("403", "需要登录评论哦~", null);
         }
         CommentVo commentVo = null;
         if (actionType == 1) {
@@ -54,7 +55,6 @@ public class CommentController {
     /**
      * 视频评论列表
      * 查看该视频的所有评论,按发布时间倒序
-     * 不需要登录也可以查看
      *
      * @param tokenAuthSuccess
      * @param videoId
