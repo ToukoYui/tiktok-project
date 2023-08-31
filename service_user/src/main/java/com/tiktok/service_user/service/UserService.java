@@ -46,9 +46,6 @@ public class UserService {
                 userRegisterResp.setStatusCode("0");
                 userRegisterResp.setStatusMsg("用户注册成功");
                 userRegisterResp.setToken(token);
-
-                // 将token存入redis中
-                redisTemplate.opsForValue().set("user:token:" + token,user.getId().toString(),30, TimeUnit.MINUTES);
             } else {
                 userRegisterResp.setStatusMsg("用户已存在,请勿重复注册");
                 userRegisterResp.setStatusCode("401");
@@ -97,9 +94,6 @@ public class UserService {
                 // 调用接口生成并返回token
                 String token = JjwtUtil.createToken(user.getId(), user.getUsername());
                 userLoginResp.setToken(token);
-
-                // 将token存入redis中
-                redisTemplate.opsForValue().set("user:token:" + token,user.getId().toString(),30, TimeUnit.MINUTES);
             } else {
                 userLoginResp.setStatusMsg("未找到用户");
                 userLoginResp.setStatusCode(401);
@@ -139,17 +133,5 @@ public class UserService {
         }
         // 转换为对象
         return JSONObject.parseObject(jsonObjectStr,UserVo.class);
-    }
-
-    /**
-     * 用户注销功能
-     * @param nativeWebRequest
-     * @return
-     */
-    public boolean userLogout(NativeWebRequest nativeWebRequest) {
-        HttpServletRequest request = nativeWebRequest.getNativeRequest(HttpServletRequest.class);
-        String token = request.getParameter("token");
-        // 删除redis中的token
-        return redisTemplate.delete("user:token:" + token);
     }
 }
