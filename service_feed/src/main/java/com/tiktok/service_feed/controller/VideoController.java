@@ -86,5 +86,4 @@ public class VideoController {
         List<VideoVo> myVideoList = videoService.getMyVideoList(tokenAuthSuccess);
         return new VideoResp("0", "获取当前用户视频成功", null, myVideoList);
     }
-
 }
