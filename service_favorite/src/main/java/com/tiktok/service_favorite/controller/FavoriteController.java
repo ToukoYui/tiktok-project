@@ -37,8 +37,8 @@ public class FavoriteController {
         return likesMapper.getLikeCountByUserId(userId);
     }
     @GetMapping("/like/isFav")
-    Boolean getIsLike(@RequestParam("userId") Long userId){
-        Integer isLike = likesMapper.getIsLike(userId);
+    Boolean getIsLike(@RequestParam("userId") Long userId,@RequestParam("videoId")Long videoId){
+        Integer isLike = likesMapper.getIsLike(userId,videoId);
         return isLike != 0;
     }
 }

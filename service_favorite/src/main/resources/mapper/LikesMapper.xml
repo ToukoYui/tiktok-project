@@ -2,11 +2,16 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.tiktok.service_favorite.mapper.LikesMapper">
 
-    <update id="insertFavorite">
+    <insert id="insertFavorite">
         insert into tb_likes
         (user_id,video_id,is_favorite)
         values
         (#{userId},#{videoId},#{isFavorite})
+    </insert>
+    <update id="updateFavorite">
+        update tb_likes
+        set is_favorite = #{isFavorite}
+        where user_id = #{userId} and video_id = #{videoId}
     </update>
     <select id="getLikeCount" resultType="java.lang.Integer" parameterType="java.lang.Long">
         select count(1) from tb_likes where video_id = #{videoId}
@@ -15,6 +20,10 @@
         select count(1) from tb_likes where user_id = #{userId}
     </select>
     <select id="getIsLike" resultType="java.lang.Integer" parameterType="java.lang.Long">
-        select is_favorite from tb_likes where user_id = #{userId}
+        select is_favorite from tb_likes where user_id = #{userId} and video_id = #{videoId}
     </select>
+    <select id="selectLike" resultType="java.lang.Integer">
+        select count(1) from tb_like where user_id = #{userId} and video_id = #{videoId}
+    </select>
+
 </mapper>
