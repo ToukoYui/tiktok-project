@@ -1,12 +1,12 @@
 server:
-  port: 8022
+  port: 8024
   max-http-header-size: 20480
   servlet:
     context-path: /douyin #request prefix
 
 spring:
   application:
-    name: service-feed
+    name: service-favorite
   servlet:
     multipart:
       enabled: true

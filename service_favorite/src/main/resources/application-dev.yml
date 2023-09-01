@@ -8,7 +8,7 @@ server:
 
 spring:
   application:
-    name: service-feed
+    name: service-favorite
   servlet:
     multipart:
       enabled: true

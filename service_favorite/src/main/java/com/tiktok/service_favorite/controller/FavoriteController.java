@@ -30,15 +30,15 @@ public class FavoriteController {
         redisTemplate.delete("videolist:public");
         return likesService.liked(videoId,actionType);
     }
-    @GetMapping("/douyin/like/inner/count")
+    @GetMapping("/douyin/like/count")
     Integer getLikeCount(@RequestParam("videoId") Long videoId){
         return likesMapper.getLikeCount(videoId);
     }
-    @GetMapping("/douyin/like/inner/userCount")
+    @GetMapping("/douyin/like/userCount")
     Integer getLikeCountByUserId(@RequestParam("userId") Long userId){
         return likesMapper.getLikeCountByUserId(userId);
     }
-    @GetMapping("/douyin/like/inner/isFav")
+    @GetMapping("/douyin/like/isFav")
     Boolean getIsLike(@RequestParam("userId") Long userId){
         Integer isLike = likesMapper.getIsLike(userId);
         return isLike != 0;
