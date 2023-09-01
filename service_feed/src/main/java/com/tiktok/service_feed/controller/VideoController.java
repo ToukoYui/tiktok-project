@@ -30,7 +30,7 @@ public class VideoController {
      * 获取视频流信息（包含作者信息）
      *
      * @param latestTimeStr    时间戳字符串，处理时要转为DateTime类型
-     * @param tokenAuthSuccess 从token中解析出来的
+     *
      * @return
      */
     @GetMapping("/feed")

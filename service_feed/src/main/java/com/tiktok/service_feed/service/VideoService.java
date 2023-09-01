@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -172,7 +173,6 @@ public class VideoService {
             log.info("获取视频流，从缓存中获取------------->" + videoVoListFromRedis.toString());
             return videoVoListFromRedis;
         }
-
         // 缓存中没有,查询数据库
         String token = tokenAuthSuccess.getToken();
         UserVo userInfo;
@@ -192,13 +192,17 @@ public class VideoService {
         }
         // 将集合中的video数据类型转换为videoVo类型
         // 交互功能还没实现,数值目前先设置为0
-        List<VideoVo> videoVoList = videos.stream().map(
-                video -> new VideoVo(
-                        video.getId(), userInfo, video.getPlayUrl(),
-                        video.getCoverUrl(), 0, 0, false,
-                        video.getTitle(), video.getCreatedTime()
-                )
-        ).collect(Collectors.toList());
+        List<VideoVo> videoVoList = new ArrayList<>();
+        for(Video video : videos){
+            Integer likeCount = likeFeignClient.getLikeCount(video.getId());
+            Integer commentCount = commentFeignClient.getCommnetNumFromCommentModule(video.getId());
+            Boolean isLike = likeFeignClient.getIsLike(Long.valueOf(userId), video.getId());
+            videoVoList.add(new VideoVo(
+                    video.getId(), userInfo, video.getPlayUrl(),
+                    video.getCoverUrl(), likeCount, commentCount, isLike,
+                    video.getTitle(), video.getCreatedTime()
+            ));
+        }
         // 存入redis
         redisTemplate.opsForValue().set(redisKey, videoVoList, 3, TimeUnit.MINUTES);
         return videoVoList;

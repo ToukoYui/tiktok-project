@@ -12,5 +12,5 @@ public interface LikeFeignClient {
     @GetMapping("/douyin/favorite/like/userCount")
     Integer getLikeCountByUserId(@RequestParam("userId") Long userId);
     @GetMapping("/douyin/favorite/like/isFav")
-    Boolean getIsLike(@RequestParam("userId") Long userId);
+    Boolean getIsLike(@RequestParam("userId") Long userId,@RequestParam("videoId")Long videoId);
 }
