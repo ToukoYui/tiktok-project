@@ -18,5 +18,16 @@
             <version>3.0.5</version>
         </dependency>
     </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <classifier>common_util</classifier>
+                </configuration>
+            </plugin>
 
+        </plugins>
+    </build>
 </project>
