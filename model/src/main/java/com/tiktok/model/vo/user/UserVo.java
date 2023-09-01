@@ -28,7 +28,7 @@ public class UserVo {
     private Long workCount;
 
     @JsonProperty("favorite_count")
-    private Long favoriteCount;
+    private Integer favoriteCount;
 
     public UserVo() {
     }

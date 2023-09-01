@@ -9,6 +9,7 @@ import com.qcloud.cos.model.ObjectMetadata;
 import com.qcloud.cos.model.PutObjectRequest;
 import com.qcloud.cos.region.Region;
 import com.tiktok.feign_util.utils.CommentFeignClient;
+import com.tiktok.feign_util.utils.LikeFeignClient;
 import com.tiktok.feign_util.utils.UserFeignClient;
 import com.tiktok.model.entity.video.Video;
 import com.tiktok.model.vo.TokenAuthSuccess;
@@ -46,11 +47,13 @@ public class VideoService {
 
     @Autowired
     private VideoMapper videoMapper;
+    @Autowired
+    private LikeFeignClient likeFeignClient;
 
     @Resource
     private RedisTemplate<String, List<VideoVo>> redisTemplate;
 
-    public List<VideoVo> getVideoList(String lastTime, String token, String userId) {
+    public List<VideoVo> getVideoList(String lastTime) {
         System.out.println("lastTime = " + lastTime);
         // 查询redis中是否有缓存
         // 这里直接public就好了,因为退出应用不代表用户就退出
@@ -75,6 +78,8 @@ public class VideoService {
             BeanUtils.copyProperties(video, videoVo);
             videoVo.setAuthor(userInfo);
             // todo 获取点赞数
+            Integer likeCount = likeFeignClient.getLikeCount(video.getId());
+            videoVo.setFavoriteCount(likeCount);
             // 获取评论数
             Integer commentCount = commentFeignClient.getCommnetNumFromCommentModule(video.getId());
             videoVo.setCommentCount(commentCount);
@@ -177,6 +182,8 @@ public class VideoService {
         } else {
             userInfo = userFeignClient.getUserInfoFromUserModule(userId, token).getUserVo();
         }
+        //获取当前用户的喜欢视频数
+        userInfo.setFavoriteCount(likeFeignClient.getLikeCount(Long.valueOf(userId)));
         // 根据当前用户id查找已发布的视频
         List<Video> videos = videoMapper.selectVideoByUserId(userId);
         if (videos == null) {
@@ -197,4 +204,5 @@ public class VideoService {
         return videoVoList;
 
     }
+
 }
