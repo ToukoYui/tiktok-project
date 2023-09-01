@@ -24,7 +24,7 @@ public class FavoriteController {
     @PostMapping("/action")
     public FavoriteResp like(@RequestParam("video_id")Long videoId, @RequestParam("action_type") String actionType,@TokenAuthAnno TokenAuthSuccess tokenAuthSuccess){
         if(!tokenAuthSuccess.getIsSuccess()){
-            return new FavoriteResp("403","请先登录哦~",null);
+            return new FavoriteResp("500","请先登录哦~",null);
         }
         return likesService.liked(videoId,actionType,tokenAuthSuccess);
     }

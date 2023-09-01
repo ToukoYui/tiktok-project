@@ -53,7 +53,7 @@ public class VideoService {
     @Resource
     private RedisTemplate<String, List<VideoVo>> redisTemplate;
 
-    public List<VideoVo> getVideoList(String lastTime, String token, String userId) {
+    public List<VideoVo> getVideoList(String lastTime) {
         System.out.println("lastTime = " + lastTime);
         // 查询redis中是否有缓存
         // 这里直接public就好了,因为退出应用不代表用户就退出

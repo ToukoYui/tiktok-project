@@ -7,7 +7,7 @@ import org.apache.ibatis.annotations.Param;
 public interface LikesMapper {
     void insertFavorite(@Param("videoId") Long videoId,
                         @Param("isFavorite") Integer isFavorite,
-                        @Param("userId") String userId);
+                        @Param("userId") Long userId);
 
     Integer getLikeCount(Long videoId);
 
@@ -15,10 +15,10 @@ public interface LikesMapper {
 
     Integer getIsLike(Long userId,Long videoId);
 
-    Integer selectLike(@Param("userId") String userId,@Param("videoId") Long videoId);
+    Integer selectLike(@Param("userId") Long userId,@Param("videoId") Long videoId);
 
     void updateFavorite(@Param("videoId") Long videoId,
                         @Param("isFavorite") Integer isFavorite,
-                        @Param("userId") String userId);
+                        @Param("userId") Long userId);
 }
 

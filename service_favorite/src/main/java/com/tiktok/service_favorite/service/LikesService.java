@@ -29,19 +29,20 @@ public class LikesService {
         try {
             String userId = authSuccess.getUserId();
             //查询用户是否点赞过该视频
-            Integer count = likesMapper.selectLike(userId,videoId);
+            Integer count = likesMapper.selectLike(Long.valueOf(userId),videoId);
             if(count == 0){
                 //未点赞过，添加新的点赞记录
-                likesMapper.insertFavorite(videoId,1,userId);
+                likesMapper.insertFavorite(videoId,1,Long.valueOf(userId));
             }else {
                 //点赞过，修改是否点赞即可
                 if(actionType.equals("1")){
-                    likesMapper.updateFavorite(videoId,1,userId);
+                    likesMapper.updateFavorite(videoId,1,Long.valueOf(userId));
                 }else {
-                    likesMapper.updateFavorite(videoId,0,userId);
+                    likesMapper.updateFavorite(videoId,0,Long.valueOf(userId));
                 }
             }
         }catch (Exception e){
+            e.printStackTrace();
             return new FavoriteResp("500","服务器出错，点赞失败哦~",null);
         }
         redisTemplate.delete("videolist:public");

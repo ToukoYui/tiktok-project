@@ -34,17 +34,14 @@ public class VideoController {
      * @return
      */
     @GetMapping("/feed")
-    public VideoResp getVideoList(@RequestParam("latest_time") String latestTimeStr, @OptionalParamAnno TokenAuthSuccess tokenAuthSuccess) {
-        if (!tokenAuthSuccess.getIsSuccess()) {
-            return new VideoResp("403", "token错误，禁止访问", null, null);
-        }
+    public VideoResp getVideoList(@RequestParam("latest_time") String latestTimeStr) {
         // 如果last_time为空则用当前时间字符串
         Timestamp timestamp = StringUtils.isEmpty(latestTimeStr) ?
                 new Timestamp(System.currentTimeMillis()) : new Timestamp(Long.parseLong(latestTimeStr));
         LocalDateTime localDateTime = timestamp.toLocalDateTime();
         String lastTime = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(localDateTime);
         // 获取视频
-        List<VideoVo> videoVoList = videoService.getVideoList(lastTime, tokenAuthSuccess.getToken(),tokenAuthSuccess.getUserId());
+        List<VideoVo> videoVoList = videoService.getVideoList(lastTime);
         // 获取最早发布的视频的发布时间
         LocalDateTime nextTime = videoVoList.get(videoVoList.size() - 1).getCreatedTime();
         Integer nextTimeInt = Math.toIntExact(nextTime.toEpochSecond(ZoneOffset.of("+8")));

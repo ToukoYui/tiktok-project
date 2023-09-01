@@ -23,7 +23,7 @@
         select is_favorite from tb_likes where user_id = #{userId} and video_id = #{videoId}
     </select>
     <select id="selectLike" resultType="java.lang.Integer">
-        select count(1) from tb_like where user_id = #{userId} and video_id = #{videoId}
+        select count(1) from tb_likes where user_id = #{userId} and video_id = #{videoId}
     </select>
 
 </mapper>
