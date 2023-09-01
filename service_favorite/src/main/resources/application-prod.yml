@@ -40,12 +40,12 @@ feign:
   client:
     config:
       default:
-        connectTimeout: 2000
-        readTimeout: 2000
+        connectTimeout: 10000
+        readTimeout: 10000
         loggerLevel: FULL
 
 mybatis:
-#  mapper-locations: classpath:mapper/*.xml
+  mapper-locations: classpath:mapper/*.xml
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 

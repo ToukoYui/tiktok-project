@@ -18,8 +18,7 @@ import java.util.List;
 public class FavoriteController {
     @Autowired
     private LikesService likesService;
-    @Resource
-    private RedisTemplate<String, List<VideoVo>> redisTemplate;
+
     @Autowired
     private LikesMapper likesMapper;
     @PostMapping("/action")
@@ -27,18 +26,17 @@ public class FavoriteController {
         if(!tokenAuthSuccess.getIsSuccess()){
             return new FavoriteResp("403","请先登录哦~",null);
         }
-        redisTemplate.delete("videolist:public");
-        return likesService.liked(videoId,actionType);
+        return likesService.liked(videoId,actionType,tokenAuthSuccess);
     }
-    @GetMapping("/douyin/like/count")
+    @GetMapping("/like/count")
     Integer getLikeCount(@RequestParam("videoId") Long videoId){
         return likesMapper.getLikeCount(videoId);
     }
-    @GetMapping("/douyin/like/userCount")
+    @GetMapping("/like/userCount")
     Integer getLikeCountByUserId(@RequestParam("userId") Long userId){
         return likesMapper.getLikeCountByUserId(userId);
     }
-    @GetMapping("/douyin/like/isFav")
+    @GetMapping("/like/isFav")
     Boolean getIsLike(@RequestParam("userId") Long userId){
         Integer isLike = likesMapper.getIsLike(userId);
         return isLike != 0;

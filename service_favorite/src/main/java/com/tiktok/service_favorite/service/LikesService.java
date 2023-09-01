@@ -20,22 +20,22 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class LikesService {
-    @Resource
-    private RedisTemplate<String, List<VideoVo>> redisTemplate;
-    @Autowired
-    private VideoFeignClient videoFeignClient;
     @Autowired
     private LikesMapper likesMapper;
-    public FavoriteResp liked(Long videoId, String actionType) {
+    @Resource
+    private RedisTemplate<String, List<VideoVo>> redisTemplate;
+    public FavoriteResp liked(Long videoId, String actionType,TokenAuthSuccess authSuccess) {
+        String userId = authSuccess.getUserId();
         try {
             if(actionType.equals("1")){
-                likesMapper.updateFavorite(videoId,1);
+                likesMapper.insertFavorite(videoId,1,userId);
             }else {
-                likesMapper.updateFavorite(videoId,0);
+                likesMapper.insertFavorite(videoId,0,userId);
             }
         }catch (Exception e){
             return new FavoriteResp("500","服务器出现错误，点赞失败~",null);
         }
+        redisTemplate.delete("videolist:public");
         return new FavoriteResp("0","点赞成功",null);
     }
 }

@@ -40,8 +40,8 @@ feign:
   client:
     config:
       default:
-        connectTimeout: 2000
-        readTimeout: 2000
+        connectTimeout: 10000
+        readTimeout: 10000
         loggerLevel: FULL
 
 mybatis:
