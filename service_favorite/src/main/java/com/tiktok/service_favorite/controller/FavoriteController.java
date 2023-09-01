@@ -41,4 +41,8 @@ public class FavoriteController {
         Integer isLike = likesMapper.getIsLike(userId,videoId);
         return isLike != 0;
     }
+    @GetMapping("/list")
+    public FavoriteResp list(@RequestParam("user_id")Long userId,@TokenAuthAnno TokenAuthSuccess tokenAuthSuccess){
+        return null;
+    }
 }
