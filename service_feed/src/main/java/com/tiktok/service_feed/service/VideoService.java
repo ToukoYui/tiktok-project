@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -52,6 +53,13 @@ public class VideoService {
 
     @Resource
     private RedisTemplate<String, List<VideoVo>> redisTemplate;
+
+    private static String[] suffixArr = {
+            "mp4", "avi", "mkv", "mov", "flv",
+            "wmv", "webm", "m4v", "3gp", "mpeg",
+            "mpg", "m2v", "ts", "vob", "rm",
+            "rmvb", "swf", "asf", "m2ts", "f4v"
+    };
 
     public List<VideoVo> getVideoList(String lastTime) {
         System.out.println("lastTime = " + lastTime);
@@ -77,7 +85,7 @@ public class VideoService {
             VideoVo videoVo = new VideoVo();
             BeanUtils.copyProperties(video, videoVo);
             videoVo.setAuthor(userInfo);
-            // todo 获取点赞数
+            // 获取点赞数
             Integer likeCount = likeFeignClient.getLikeCount(video.getId());
             videoVo.setFavoriteCount(likeCount);
             // 获取评论数
@@ -108,14 +116,11 @@ public class VideoService {
 
     // 判断上传的文件是否为视频格式
     private boolean fileTypeFilter(String fileSuffix) {
-        String[] suffixArr = new String[]{
-
-        };
-        return true;
+        return Arrays.binarySearch(suffixArr, fileSuffix) >= 0;
     }
 
     // 上传文件到腾讯云后返回该存储文件的url
-    public String uploadVideo(MultipartFile multipartFile, String title,String userId) {
+    public String uploadVideo(MultipartFile multipartFile, String title, String userId) {
         // 获取文件名及后缀
         String originalFilename = multipartFile.getOriginalFilename();
         // 获取文件后缀
@@ -150,10 +155,13 @@ public class VideoService {
             Video video = new Video();
             video.setUserId(Long.valueOf(userId));
             video.setPlayUrl(objectUrl.toString());
-            video.setCoverUrl("https://"+ bucketName + ".cos." + OssPropertiesUtils.COS_REGION + ".myqcloud.com/" +coverKey);
+            video.setCoverUrl("https://" + bucketName + ".cos." + OssPropertiesUtils.COS_REGION + ".myqcloud.com/" + coverKey);
             video.setTitle(title);
             video.setCreatedTime(LocalDateTime.now());
             videoMapper.insertVideo(video);
+
+            // 发布视频后删除该用户缓存
+            redisTemplate.delete("user:" + userId);
             return objectUrl.toString();
         } catch (IOException e) {
             e.printStackTrace();
@@ -191,7 +199,7 @@ public class VideoService {
             return null;
         }
         // 将集合中的video数据类型转换为videoVo类型
-        // 交互功能还没实现,数值目前先设置为0
+        // todo 交互功能还没实现,数值目前先设置为0
         List<VideoVo> videoVoList = videos.stream().map(
                 video -> new VideoVo(
                         video.getId(), userInfo, video.getPlayUrl(),
@@ -203,6 +211,11 @@ public class VideoService {
         redisTemplate.opsForValue().set(redisKey, videoVoList, 3, TimeUnit.MINUTES);
         return videoVoList;
 
+    }
+
+    // 根据用户id获取该用户发布的视频数
+    public Integer getVideoNumByUserId(Long userId) {
+        return videoMapper.getVideoNumByUserId(userId);
     }
 
 }

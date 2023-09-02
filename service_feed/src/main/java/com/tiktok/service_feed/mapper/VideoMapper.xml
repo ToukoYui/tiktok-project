@@ -23,9 +23,14 @@
         limit 30
     </select>
 
+
     <insert id="insertVideo" parameterType="com.tiktok.model.entity.video.Video">
         insert into tb_video(user_id,play_url,cover_url,title,created_time)
         values (#{userId},#{playUrl},#{coverUrl},#{title},#{createdTime})
     </insert>
+
+    <select id="getVideoNumByUserId" resultType="java.lang.Integer">
+        select count(*) from tb_video where user_id = #{userId}
+    </select>
 
 </mapper>

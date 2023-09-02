@@ -15,4 +15,6 @@ public interface VideoMapper {
 
     void insertVideo(Video video);
 
+    Integer getVideoNumByUserId(Long userId);
+
 }
