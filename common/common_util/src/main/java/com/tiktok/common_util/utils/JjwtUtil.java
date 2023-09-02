@@ -9,7 +9,7 @@ public class JjwtUtil {
     private static String tokenSignKey = "123456";
 
     public static String createToken(Long userId, String userName) {
-        long tokenExpiration = 2 * 3600 * 1000; //过期时间设为两小时
+        long tokenExpiration = 24 * 3600 * 1000; //过期时间设为24小时
         String token = Jwts.builder()
                 //设置签名（由自定义的密钥加密生成，前一个参数为加密密钥的算法）
                 .signWith(SignatureAlgorithm.HS512, tokenSignKey)

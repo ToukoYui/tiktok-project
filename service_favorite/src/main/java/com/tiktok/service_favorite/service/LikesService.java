@@ -41,11 +41,17 @@ public class LikesService {
                     likesMapper.updateFavorite(videoId,0,Long.valueOf(userId));
                 }
             }
+            // 点赞操作后删除该用户缓存
+            redisTemplate.delete("user:" + userId);
         }catch (Exception e){
             e.printStackTrace();
             return new FavoriteResp("500","服务器出错，点赞失败哦~",null);
         }
         redisTemplate.delete("videolist:public");
         return new FavoriteResp("0","点赞成功",null);
+    }
+
+    public Integer getLikedVideoNumByUserId(Long userId){
+        return likesMapper.getLikedVideoNumByUserId(userId);
     }
 }

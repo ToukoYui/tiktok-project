@@ -26,4 +26,9 @@
         select count(1) from tb_likes where user_id = #{userId} and video_id = #{videoId}
     </select>
 
+    <select id="getLikedVideoNumByUserId" resultType="java.lang.Integer">
+        select count(*) from tb_likes where user_id = #{userId} and is_favorite = 1
+    </select>
+
+
 </mapper>

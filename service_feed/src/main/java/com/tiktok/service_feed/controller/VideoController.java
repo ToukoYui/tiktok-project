@@ -30,7 +30,6 @@ public class VideoController {
      * 获取视频流信息（包含作者信息）
      *
      * @param latestTimeStr    时间戳字符串，处理时要转为DateTime类型
-     * @param tokenAuthSuccess 从token中解析出来的
      * @return
      */
     @GetMapping("/feed")
@@ -82,5 +81,10 @@ public class VideoController {
         // 获取当前用户发布的视频,并返回
         List<VideoVo> myVideoList = videoService.getMyVideoList(tokenAuthSuccess);
         return new VideoResp("0", "获取当前用户视频成功", null, myVideoList);
+    }
+
+    @GetMapping("/inner/videonum")
+    public Integer getVideoNumByUserId(@RequestParam("userId") Long userId){
+        return videoService.getVideoNumByUserId(userId);
     }
 }

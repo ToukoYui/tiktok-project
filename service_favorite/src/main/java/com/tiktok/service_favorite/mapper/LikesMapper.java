@@ -20,5 +20,7 @@ public interface LikesMapper {
     void updateFavorite(@Param("videoId") Long videoId,
                         @Param("isFavorite") Integer isFavorite,
                         @Param("userId") Long userId);
+
+    Integer getLikedVideoNumByUserId(Long userId);
 }
 
