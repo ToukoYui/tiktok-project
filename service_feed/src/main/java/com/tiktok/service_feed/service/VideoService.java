@@ -218,4 +218,20 @@ public class VideoService {
         return videoMapper.getVideoNumByUserId(userId);
     }
 
+    // 根据视频id列表获取视频详情列表
+    public List<VideoVo> getVideoInfoList(List<Long> videoIdList){
+        List<Video> videoList = videoMapper.getVideoListByIdList(videoIdList);
+        List<VideoVo> videoVoList = videoList.stream().map(
+                video -> {
+                    VideoVo videoVo = new VideoVo();
+                    BeanUtils.copyProperties(video,videoVo);
+                    videoVo.setIsFavorite(true);
+                    // todo 前端不支持，设为null
+                    videoVo.setAuthor(null);
+                    return videoVo;
+                }
+        ).collect(Collectors.toList());
+        return videoVoList;
+    }
+
 }

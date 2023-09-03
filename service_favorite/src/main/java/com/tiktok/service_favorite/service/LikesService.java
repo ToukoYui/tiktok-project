@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,7 +42,7 @@ public class LikesService {
                     likesMapper.updateFavorite(videoId,0,Long.valueOf(userId));
                 }
             }
-            // 点赞操作后删除该用户缓存
+            // 点赞操作后删除该用户缓存和喜欢列表缓存
             redisTemplate.delete("user:" + userId);
         }catch (Exception e){
             e.printStackTrace();

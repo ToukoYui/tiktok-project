@@ -46,8 +46,25 @@ public class FavoriteController {
         return isLike != 0;
     }
 
+    /**
+     * 获取用户的喜欢视频数量
+     * 内部接口，供user模块调用
+     *
+     * @param userId
+     * @return
+     */
     @GetMapping("/inner/likedvideonum")
     public Integer getLikedVideoNumByUserId(@RequestParam("userId") Long userId) {
         return likesService.getLikedVideoNumByUserId(userId);
     }
+
+    @GetMapping("/list")
+    public FavoriteResp getLikedVideoList(@RequestParam("user_id") String userId, @TokenAuthAnno TokenAuthSuccess tokenAuthSuccess) {
+        if (!tokenAuthSuccess.getIsSuccess()) {
+            return new FavoriteResp("500", "请先登录哦~", null);
+        }
+        return likesService.getLikedVideoList(userId);
+    }
+
+
 }
