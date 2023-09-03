@@ -124,7 +124,7 @@ public class CommentService {
         List<Long> commentIdListFromMysql = new ArrayList<>();
         // 封装数据
         List<CommentVo> commentVoList = new ArrayList<>();
-        if(commentList.size() >0) {
+        if (commentList.size() > 0) {
             commentVoList = commentList.stream().map(
                     (comment) -> {
                         String userId = comment.getUserId().toString();
@@ -134,13 +134,14 @@ public class CommentService {
                         BeanUtil.copyProperties(comment, commentVo);
                         commentVo.setUser(userInfo);
                         // 具体评论json单独存入redis中
-                        redisTemplateCommentVo.opsForValue().set(keyPre + comment.getId(), commentVo, 3, TimeUnit.MINUTES);
+                        redisTemplateCommentVo.opsForValue().set(keyPre + comment.getId(), commentVo, 24, TimeUnit.HOURS);
                         commentIdListFromMysql.add(comment.getId());
                         return commentVo;
                     }
             ).collect(Collectors.toList());
             // 将评论id列表存入redis中
             redisTemplateLong.opsForList().rightPushAll(key, commentIdListFromMysql);
+            redisTemplateLong.expire(key,2,TimeUnit.HOURS);
         }
         // 评论
         return commentVoList;
@@ -148,18 +149,20 @@ public class CommentService {
 
     /**
      * 获取视频的评论数
+     *
      * @param videoId
      * @return
      */
-    public Integer getCommentCount(Long videoId){
+    public Integer getCommentCount(Long videoId) {
         return commentMapper.queryCommentNumByVideoId(videoId);
     }
 
     /**
      * 删除某条评论
+     *
      * @param commentId
      */
-    public void deleteComment(Long commentId,Long videoId){
+    public void deleteComment(Long commentId, Long videoId) {
         commentMapper.deleteCommentById(commentId);
         // 清空评论id列表缓存
         String deleteKey = "comment:" + videoId + ":commentIdList:*";

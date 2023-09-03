@@ -21,7 +21,7 @@ import java.util.Date;
 import java.util.List;
 
 @Slf4j
-@RestController()
+@RestController
 public class VideoController {
     @Autowired
     private VideoService videoService;
@@ -83,8 +83,25 @@ public class VideoController {
         return new VideoResp("0", "获取当前用户视频成功", null, myVideoList);
     }
 
+    /**
+     * 获取用户的发布视频数量
+     * 内部接口，供user模块调用
+     * @param userId
+     * @return
+     */
     @GetMapping("/inner/videonum")
     public Integer getVideoNumByUserId(@RequestParam("userId") Long userId){
         return videoService.getVideoNumByUserId(userId);
+    }
+
+    /**
+     * 根据视频id列表查询视频信息列表
+     * 内部接口，供favorite模块调用
+     * @param videoIdList
+     * @return
+     */
+    @GetMapping("/inner/videoinfolist")
+    public List<VideoVo> getVideoInfoList(@RequestParam("videoIdList") List<Long> videoIdList){
+       return  videoService.getVideoInfoList(videoIdList);
     }
 }

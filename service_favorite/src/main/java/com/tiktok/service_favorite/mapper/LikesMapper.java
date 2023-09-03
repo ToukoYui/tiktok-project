@@ -3,6 +3,8 @@ package com.tiktok.service_favorite.mapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
 @Mapper
 public interface LikesMapper {
     void insertFavorite(@Param("videoId") Long videoId,
@@ -22,5 +24,7 @@ public interface LikesMapper {
                         @Param("userId") Long userId);
 
     Integer getLikedVideoNumByUserId(Long userId);
+
+    List<Long> getVideoIdByUserId(Long userId);
 }
 

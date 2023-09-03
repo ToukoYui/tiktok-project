@@ -17,4 +17,6 @@ public interface VideoMapper {
 
     Integer getVideoNumByUserId(Long userId);
 
+    List<Video> getVideoListByIdList(@Param("videoIdList") List<Long> videoIdList);
+
 }
