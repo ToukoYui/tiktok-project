@@ -1,22 +1,17 @@
 package com.tiktok.service_favorite.service;
 
 import com.tiktok.feign_util.utils.VideoFeignClient;
-import com.tiktok.model.entity.video.Video;
 import com.tiktok.model.vo.TokenAuthSuccess;
 import com.tiktok.model.vo.favorite.FavoriteResp;
-import com.tiktok.model.vo.user.UserVo;
 import com.tiktok.model.vo.video.VideoVo;
 import com.tiktok.service_favorite.mapper.LikesMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import javax.annotation.Resource;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j

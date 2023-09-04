@@ -67,3 +67,15 @@ tencentyun:
     bucket: douyin-1313537069 # 存储桶名
     secretId: ENC(Z3G9H2hwpdQMR1XbLcQxRr4T0wT8tVfBcUEhhP3PbBU41ODHLXu2hJ/y/95nKkrZ)
     secretKey: ENC(NAVTBxcwmDTcgKidk60YDWNh3t/OiaiuHJLVEshs+R8cFRsy1wFeRwBQ6LVEZ4rZ)
+
+async:
+  executor:
+    thread:
+      # 配置核心线程数（需要后续调整）
+      core_pool_size: 10
+      # 配置最大线程数
+      max_pool_size: 20
+      # 配置队列大小
+      queue_capacity: 999
+      name:
+        prefix: async-service-
