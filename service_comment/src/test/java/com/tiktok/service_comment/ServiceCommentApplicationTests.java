@@ -46,7 +46,7 @@ public class ServiceCommentApplicationTests {
     void testGetUserInfo() {
         String userId = "4";
         String token = "eyJhbGciOiJIUzUxMiIsInppcCI6IkdaSVAifQ.H4sIAAAAAAAAAKtWKi5NUrJS8vYM8fYP0Q0Ndg1S0lFKrShQsjI0szQ2MDY3N7bQUSotTi3yTFGyMoEw_RJzU4GacjKLM5VqAbyZrFVDAAAA.olhcd8MOPqjwrXxw-ygLVfSPi_-V-tcBL8ReJaBbM23k3GwmCkJFaCRR446UUu7sQjTvxIchSvPrMLD3KQt7aA";
-        UserVo userVo = userFeignClient.getUserInfoFromUserModuleByNotToken(userId);
+        UserVo userVo = userFeignClient.userInfo(userId);
         System.out.println(userVo);
     }
 }
