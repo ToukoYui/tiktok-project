@@ -33,7 +33,7 @@ public class VideoController {
      * @return
      */
     @GetMapping("/feed")
-    public VideoResp getVideoList(@RequestParam("latest_time") String latestTimeStr, @RequestParam(value = "token",required = false) String token) {
+    public VideoResp getVideoList(@RequestParam("latest_time") String latestTimeStr,@TokenAuthAnno TokenAuthSuccess tokenAuthSuccess) {
         // 如果last_time为空则用当前时间字符串
         Timestamp timestamp = StringUtils.isEmpty(latestTimeStr) ?
                 new Timestamp(System.currentTimeMillis()) : new Timestamp(Long.parseLong(latestTimeStr));
@@ -75,8 +75,8 @@ public class VideoController {
      */
     @GetMapping("/publish/list")
     public VideoResp getMyVideoList(@TokenAuthAnno TokenAuthSuccess tokenAuthSuccess) {
-        if (!tokenAuthSuccess.getIsSuccess()) {
-            return new VideoResp("403", "token错误，禁止访问", null, null);
+        if (tokenAuthSuccess == null || !tokenAuthSuccess.getIsSuccess()){
+            return new VideoResp("500","请先登录亲~",null,null);
         }
         // 获取当前用户发布的视频,并返回
         List<VideoVo> myVideoList = videoService.getMyVideoList(tokenAuthSuccess);

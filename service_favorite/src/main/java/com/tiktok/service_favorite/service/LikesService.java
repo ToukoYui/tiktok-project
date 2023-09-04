@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -28,7 +29,7 @@ public class LikesService {
         try {
             String userId = authSuccess.getUserId();
             //查询用户是否点赞过该视频
-            Integer count = likesMapper.selectLike(Long.valueOf(userId), videoId);
+            Integer count = likesMapper.selectIsLiked(Long.valueOf(userId), videoId);
             if (count == 0) {
                 //未点赞过，添加新的点赞记录
                 likesMapper.insertFavorite(videoId, 1, Long.valueOf(userId));
@@ -49,10 +50,6 @@ public class LikesService {
         }
         redisTemplate.delete("videolist:public");
         return new FavoriteResp("0", "点赞成功", null);
-    }
-
-    public Integer getLikedVideoNumByUserId(Long userId) {
-        return likesMapper.getLikedVideoNumByUserId(userId);
     }
 
     public FavoriteResp getLikedVideoList(String userId) {

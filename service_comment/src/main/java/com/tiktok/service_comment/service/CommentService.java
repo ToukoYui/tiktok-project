@@ -79,14 +79,9 @@ public class CommentService {
         CommentVo commentVo = new CommentVo();
         BeanUtil.copyProperties(comment, commentVo);
 
-        UserVo userInfo;
+
         // 获取当前登录用户的信息
-        // token是有可能为空的
-        if (StringUtils.isEmpty(token)) {
-            userInfo = userFeignClient.getUserInfoFromUserModuleByNotToken(String.valueOf(userId));
-        } else {
-            userInfo = userFeignClient.getUserInfoFromUserModule(String.valueOf(userId), token).getUserVo();
-        }
+        UserVo userInfo = userFeignClient.userInfo(String.valueOf(userId));
         commentVo.setUser(userInfo);
 
         // 清空该视频的所有评论id列表缓存，但单个的具体评论不仍然留着
@@ -129,7 +124,7 @@ public class CommentService {
                     (comment) -> {
                         String userId = comment.getUserId().toString();
                         // 获取用户信息
-                        UserVo userInfo = userFeignClient.getUserInfoFromUserModuleByNotToken(userId);
+                        UserVo userInfo = userFeignClient.userInfo(userId);
                         CommentVo commentVo = new CommentVo();
                         BeanUtil.copyProperties(comment, commentVo);
                         commentVo.setUser(userInfo);

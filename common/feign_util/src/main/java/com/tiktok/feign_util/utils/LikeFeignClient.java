@@ -9,14 +9,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 @FeignClient("service-favorite")
 public interface LikeFeignClient {
     @GetMapping("/douyin/favorite/like/count")
-    Integer getLikeCount(@RequestParam("videoId") Long videoId);
+    Integer getLikeCountByVideoId(@RequestParam("videoId") Long videoId);
 
     @GetMapping("/douyin/favorite/like/userCount")
     Integer getLikeCountByUserId(@RequestParam("userId") Long userId);
 
     @GetMapping("/douyin/favorite/like/isFav")
-    Boolean getIsLike(@RequestParam("userId") Long userId);
+    Boolean getIsLike(@RequestParam("userId") Long userId,@RequestParam("videoId")Long videoId);
 
-    @GetMapping("/douyin/favorite/inner/likedvideonum")
-    Integer getLikedVideoNumByUserId(@RequestParam("userId") Long userId);
 }
