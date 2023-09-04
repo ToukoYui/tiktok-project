@@ -67,7 +67,7 @@ public class VideoService {
             "rmvb", "swf", "asf", "m2ts", "f4v"
     };
 
-    public List<VideoVo> getVideoList(String lastTime,TokenAuthSuccess tokenAuthSuccess) {
+    public List<VideoVo> getVideoList(String lastTime) {
         System.out.println("lastTime = " + lastTime);
         // 查询redis中是否有缓存
         // 这里直接public就好了,因为退出应用不代表用户就退出
@@ -203,6 +203,10 @@ public class VideoService {
             log.info("获取视频流，从缓存中获取------------->" + videoVoListFromRedis.toString());
             return videoVoListFromRedis;
         }
+
+        // 缓存中没有,查询数据库
+        String token = tokenAuthSuccess.getToken();
+        UserVo userInfo;
         // 获取当前登录用户的信息
         UserVo userInfo = userFeignClient.userInfo(tokenAuthSuccess.getUserId());
         //获取当前用户的喜欢视频数
@@ -238,9 +242,6 @@ public class VideoService {
 
     // 根据视频id列表获取视频详情列表
     public List<VideoVo> getVideoInfoList(List<Long> videoIdList){
-        if (CollectionUtils.isEmpty(videoIdList)){
-            return new ArrayList<VideoVo>();
-        }
         List<Video> videoList = videoMapper.getVideoListByIdList(videoIdList);
         List<VideoVo> videoVoList = videoList.stream().map(
                 video -> {
