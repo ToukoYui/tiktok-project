@@ -136,11 +136,11 @@ public class UserService {
                 // 获取发布视频的数量
                 Integer videoNum = videoFeignClient.getVideoNumByUserId(userId);
                 // 获取喜欢视频的数量
-                Integer likedVideoNum = likeFeignClient.getLikedVideoNumByUserId(userId);
+                Integer likedVideoNum = likeFeignClient.getLikeCountByUserId(userId);
                 userVo.setWorkCount(videoNum);
                 userVo.setFavoriteCount(likedVideoNum);
                 jsonObjectStr = JSONObject.toJSONString(userVo);
-                redisTemplate.opsForValue().set(key,jsonObjectStr,24,TimeUnit.HOURS);
+                redisTemplate.opsForValue().set(key,jsonObjectStr,2,TimeUnit.HOURS);
             }
         }
         // 转换为对象

@@ -46,7 +46,7 @@ public class TokenArgumentResolver implements HandlerMethodArgumentResolver {
             // 如果拿不到token说明是feed接口调用，token为空也可以获取视频流
             if (token == null){
                 log.info("前端请求携带的Token为空");
-                return new TokenAuthSuccess(null,null,true);
+                return new TokenAuthSuccess(null,null,false);
             }
 
             log.info("前端请求携带的Token---------->" + token);

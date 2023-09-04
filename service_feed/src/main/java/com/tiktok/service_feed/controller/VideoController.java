@@ -33,14 +33,14 @@ public class VideoController {
      * @return
      */
     @GetMapping("/feed")
-    public VideoResp getVideoList(@RequestParam("latest_time") String latestTimeStr) {
+    public VideoResp getVideoList(@RequestParam("latest_time") String latestTimeStr,@TokenAuthAnno TokenAuthSuccess tokenAuthSuccess) {
         // 如果last_time为空则用当前时间字符串
         Timestamp timestamp = StringUtils.isEmpty(latestTimeStr) ?
                 new Timestamp(System.currentTimeMillis()) : new Timestamp(Long.parseLong(latestTimeStr));
         LocalDateTime localDateTime = timestamp.toLocalDateTime();
         String lastTime = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(localDateTime);
         // 获取视频
-        List<VideoVo> videoVoList = videoService.getVideoList(lastTime);
+        List<VideoVo> videoVoList = videoService.getVideoList(lastTime,tokenAuthSuccess);
         // 获取最早发布的视频的发布时间
         LocalDateTime nextTime = videoVoList.get(videoVoList.size() - 1).getCreatedTime();
         Integer nextTimeInt = Math.toIntExact(nextTime.toEpochSecond(ZoneOffset.of("+8")));
@@ -75,8 +75,8 @@ public class VideoController {
      */
     @GetMapping("/publish/list")
     public VideoResp getMyVideoList(@TokenAuthAnno TokenAuthSuccess tokenAuthSuccess) {
-        if (!tokenAuthSuccess.getIsSuccess()) {
-            return new VideoResp("403", "token错误，禁止访问", null, null);
+        if (tokenAuthSuccess == null || !tokenAuthSuccess.getIsSuccess()){
+            return new VideoResp("500","请先登录亲~",null,null);
         }
         // 获取当前用户发布的视频,并返回
         List<VideoVo> myVideoList = videoService.getMyVideoList(tokenAuthSuccess);
