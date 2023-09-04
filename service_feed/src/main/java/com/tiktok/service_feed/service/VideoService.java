@@ -24,6 +24,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
@@ -31,9 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -61,7 +60,7 @@ public class VideoService {
             "rmvb", "swf", "asf", "m2ts", "f4v"
     };
 
-    public List<VideoVo> getVideoList(String lastTime) {
+    public List<VideoVo> getVideoList(String lastTime,TokenAuthSuccess tokenAuthSuccess) {
         System.out.println("lastTime = " + lastTime);
         // 查询redis中是否有缓存
         // 这里直接public就好了,因为退出应用不代表用户就退出
@@ -81,13 +80,17 @@ public class VideoService {
         List<VideoVo> videoVoList = videoList.stream().map((video) -> {
             String authorId = video.getUserId().toString();
             // 获取投稿视频的用户信息
-            UserVo userInfo = userFeignClient.getUserInfoFromUserModuleByNotToken(authorId);
+            UserVo userInfo = userFeignClient.userInfo(authorId);
             VideoVo videoVo = new VideoVo();
             BeanUtils.copyProperties(video, videoVo);
             videoVo.setAuthor(userInfo);
             // 获取点赞数
-            Integer likeCount = likeFeignClient.getLikeCount(video.getId());
+            Integer likeCount = likeFeignClient.getLikeCountByVideoId(video.getId());
             videoVo.setFavoriteCount(likeCount);
+            //根据用户id和视频id获取视频是否点赞
+            if(tokenAuthSuccess != null && tokenAuthSuccess.getIsSuccess()){
+                videoVo.setIsFavorite(likeFeignClient.getIsLike(Long.valueOf(tokenAuthSuccess.getUserId()),video.getId()));
+            }
             // 获取评论数
             Integer commentCount = commentFeignClient.getCommnetNumFromCommentModule(video.getId());
             videoVo.setCommentCount(commentCount);
@@ -180,18 +183,10 @@ public class VideoService {
             log.info("获取视频流，从缓存中获取------------->" + videoVoListFromRedis.toString());
             return videoVoListFromRedis;
         }
-
-        // 缓存中没有,查询数据库
-        String token = tokenAuthSuccess.getToken();
-        UserVo userInfo;
         // 获取当前登录用户的信息
-        if (StringUtils.isEmpty(token)) {
-            userInfo = userFeignClient.getUserInfoFromUserModuleByNotToken(userId);
-        } else {
-            userInfo = userFeignClient.getUserInfoFromUserModule(userId, token).getUserVo();
-        }
+        UserVo userInfo = userFeignClient.userInfo(tokenAuthSuccess.getUserId());
         //获取当前用户的喜欢视频数
-        userInfo.setFavoriteCount(likeFeignClient.getLikeCount(Long.valueOf(userId)));
+        userInfo.setFavoriteCount(likeFeignClient.getLikeCountByUserId(Long.valueOf(userId)));
         // 根据当前用户id查找已发布的视频
         List<Video> videos = videoMapper.selectVideoByUserId(userId);
         if (videos == null) {
@@ -199,14 +194,17 @@ public class VideoService {
             return null;
         }
         // 将集合中的video数据类型转换为videoVo类型
-        // todo 交互功能还没实现,数值目前先设置为0
-        List<VideoVo> videoVoList = videos.stream().map(
-                video -> new VideoVo(
-                        video.getId(), userInfo, video.getPlayUrl(),
-                        video.getCoverUrl(), 0, 0, false,
-                        video.getTitle(), video.getCreatedTime()
-                )
-        ).collect(Collectors.toList());
+        List<VideoVo> videoVoList = new ArrayList<>();
+        for(Video video : videos){
+            Integer likeCount = likeFeignClient.getLikeCountByVideoId(video.getId());
+            Integer commentCount = commentFeignClient.getCommnetNumFromCommentModule(video.getId());
+            Boolean isLike = likeFeignClient.getIsLike(Long.valueOf(userId),video.getId());
+            videoVoList.add(new VideoVo(
+                    video.getId(), userInfo, video.getPlayUrl(),
+                    video.getCoverUrl(), likeCount, commentCount, isLike,
+                    video.getTitle(), video.getCreatedTime()
+            ));
+        }
         // 存入redis
         redisTemplate.opsForValue().set(redisKey, videoVoList, 3, TimeUnit.MINUTES);
         return videoVoList;
@@ -220,6 +218,9 @@ public class VideoService {
 
     // 根据视频id列表获取视频详情列表
     public List<VideoVo> getVideoInfoList(List<Long> videoIdList){
+        if (CollectionUtils.isEmpty(videoIdList)){
+            return new ArrayList<VideoVo>();
+        }
         List<Video> videoList = videoMapper.getVideoListByIdList(videoIdList);
         List<VideoVo> videoVoList = videoList.stream().map(
                 video -> {

@@ -11,11 +11,11 @@ public interface LikesMapper {
                         @Param("isFavorite") Integer isFavorite,
                         @Param("userId") Long userId);
 
-    Integer getLikeCount(Long videoId);
+    Integer getLikeCountByVideoId(@Param("videoId") Long videoId);
 
     Integer getLikeCountByUserId(Long userId);
 
-    Integer getIsLike(Long userId,Long videoId);
+    Integer getIsLike(@Param("userId")Long userId,@Param("videoId")Long videoId);
 
     Integer selectLike(@Param("userId") Long userId,@Param("videoId") Long videoId);
 
@@ -23,8 +23,9 @@ public interface LikesMapper {
                         @Param("isFavorite") Integer isFavorite,
                         @Param("userId") Long userId);
 
-    Integer getLikedVideoNumByUserId(Long userId);
 
     List<Long> getVideoIdByUserId(Long userId);
+
+    Integer selectIsLiked(@Param("userId") Long userId,@Param("videoId") Long videoId);
 }
 
