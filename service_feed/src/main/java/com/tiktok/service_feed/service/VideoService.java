@@ -33,6 +33,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.*;
+
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -202,10 +203,6 @@ public class VideoService {
             log.info("获取视频流，从缓存中获取------------->" + videoVoListFromRedis.toString());
             return videoVoListFromRedis;
         }
-
-        // 缓存中没有,查询数据库
-        String token = tokenAuthSuccess.getToken();
-        UserVo userInfo;
         // 获取当前登录用户的信息
         UserVo userInfo = userFeignClient.userInfo(tokenAuthSuccess.getUserId());
         //获取当前用户的喜欢视频数
@@ -241,6 +238,9 @@ public class VideoService {
 
     // 根据视频id列表获取视频详情列表
     public List<VideoVo> getVideoInfoList(List<Long> videoIdList){
+        if (CollectionUtils.isEmpty(videoIdList)){
+            return new ArrayList<VideoVo>();
+        }
         List<Video> videoList = videoMapper.getVideoListByIdList(videoIdList);
         List<VideoVo> videoVoList = videoList.stream().map(
                 video -> {

@@ -52,7 +52,6 @@ public class LikesService {
         return new FavoriteResp("0", "点赞成功", null);
     }
 
-
     public FavoriteResp getLikedVideoList(String userId) {
         // 查询缓存中是否存在
         String key = "favoriteVideo:" + userId;
