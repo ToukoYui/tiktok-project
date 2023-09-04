@@ -17,13 +17,14 @@ import com.tiktok.model.vo.user.UserVo;
 import com.tiktok.model.vo.video.VideoVo;
 import com.tiktok.service_feed.config.OssPropertiesUtils;
 import com.tiktok.service_feed.mapper.VideoMapper;
+import io.jsonwebtoken.ExpiredJwtException;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
@@ -31,10 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -67,7 +65,7 @@ public class VideoService {
             "rmvb", "swf", "asf", "m2ts", "f4v"
     };
 
-    public List<VideoVo> getVideoList(String lastTime) {
+    public List<VideoVo> getVideoList(String lastTime,TokenAuthSuccess tokenAuthSuccess) {
         System.out.println("lastTime = " + lastTime);
         // 查询redis中是否有缓存
         // 这里直接public就好了,因为退出应用不代表用户就退出
@@ -92,8 +90,9 @@ public class VideoService {
 
                 // 异步获取
                 // thread1.用户是否已点赞该视频 如果用户登录了才获取
-                if (token != null) {
-                    asyncService.getIsLikeAsync(countDownLatch, JjwtUtil.getUserId(token));
+                if(tokenAuthSuccess != null && tokenAuthSuccess.getIsSuccess()){
+                    Boolean isLike = asyncService.getIsLikeAsync(countDownLatch, Long.valueOf(tokenAuthSuccess.getUserId()), video.getId());
+                    videoVo.setIsFavorite(isLike);
                 }
                 // thread2.获取投稿视频的作者信息
                 UserVo authorInfo = asyncService.getAuthorInfoAsync(countDownLatch, video.getUserId());

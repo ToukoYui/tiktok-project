@@ -52,9 +52,6 @@ public class LikesService {
         return new FavoriteResp("0", "点赞成功", null);
     }
 
-    public Integer getLikedVideoNumByUserId(Long userId) {
-        return likesMapper.getLikedVideoNumByUserId(userId);
-    }
 
     public FavoriteResp getLikedVideoList(String userId) {
         // 查询缓存中是否存在

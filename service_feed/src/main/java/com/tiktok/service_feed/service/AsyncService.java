@@ -1,7 +1,5 @@
 package com.tiktok.service_feed.service;
 
-import com.sun.org.apache.bcel.internal.generic.FSUB;
-import com.tiktok.common_util.utils.JjwtUtil;
 import com.tiktok.feign_util.utils.CommentFeignClient;
 import com.tiktok.feign_util.utils.LikeFeignClient;
 import com.tiktok.feign_util.utils.UserFeignClient;
@@ -13,7 +11,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 @Service
@@ -32,10 +29,10 @@ public class AsyncService {
     private CountDownLatch countDownLatch; // 阻塞计数器
 
 
-    public Boolean getIsLikeAsync(CountDownLatch countDownLatch, Long userId) {
+    public Boolean getIsLikeAsync(CountDownLatch countDownLatch, Long userId,Long video) {
         try {
             Future<Boolean> submit = threadExecutor.submit(() -> {
-                Boolean isLike = likeFeignClient.getIsLike(userId);
+                Boolean isLike = likeFeignClient.getIsLike(userId,video);
                 log.info(Thread.currentThread().getName() + "----------->获取是否点赞");
                 return isLike;
             });
@@ -51,8 +48,8 @@ public class AsyncService {
     public UserVo getAuthorInfoAsync(CountDownLatch countDownLatch, Long authorId) {
         try {
             Future<UserVo> submit = threadExecutor.submit(() -> {
-                UserVo authorInfo = userFeignClient.getUserInfoFromUserModuleByNotToken(authorId.toString());
-                log.info(Thread.currentThread().getName() + "----------->获取作者信息");
+                UserVo authorInfo = userFeignClient.userInfo(authorId.toString());
+                log.info(Thread.currentThread().getName() + "----------->获取作者信息:" + authorInfo);
                 return authorInfo;
             });
             return submit.get();
@@ -67,8 +64,8 @@ public class AsyncService {
     public Integer getLikeCountAsync(CountDownLatch countDownLatch, Long videoId) {
         try {
             Future<Integer> submit = threadExecutor.submit(() -> {
-                Integer likeCount = likeFeignClient.getLikeCount(videoId);
-                log.info(Thread.currentThread().getName() + "----------->获取点赞数量");
+                Integer likeCount = likeFeignClient.getLikeCountByVideoId(videoId);
+                log.info(Thread.currentThread().getName() + "----------->获取点赞数量:" + likeCount);
                 return likeCount;
             });
             return submit.get();
@@ -83,13 +80,13 @@ public class AsyncService {
     public Integer getCommnetNum(CountDownLatch countDownLatch, Long videoId) {
         try {
             Future<Integer> submit = threadExecutor.submit(() -> {
-                Integer likeCount = likeFeignClient.getLikeCount(videoId);
-                log.info(Thread.currentThread().getName() + "----------->获取点赞数量");
+                Integer likeCount = commentFeignClient.getCommnetNumFromCommentModule(videoId);
+                log.info(Thread.currentThread().getName() + "----------->获取点赞数量:"+ likeCount);
                 return likeCount;
             });
             return submit.get();
         } catch (Exception e) {
-            log.error("查询投稿视频的点赞数量失败----------->" + e.getMessage());
+            log.error("查询投稿视频的评论数量失败----------->" + e.getMessage());
         } finally {
             countDownLatch.countDown(); // 计数器减1
         }

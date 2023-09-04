@@ -40,7 +40,7 @@ public class VideoController {
         LocalDateTime localDateTime = timestamp.toLocalDateTime();
         String lastTime = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(localDateTime);
         // 获取视频
-        List<VideoVo> videoVoList = videoService.getVideoList(lastTime,token);
+        List<VideoVo> videoVoList = videoService.getVideoList(lastTime,tokenAuthSuccess);
         // 获取最早发布的视频的发布时间
         LocalDateTime nextTime = videoVoList.get(videoVoList.size() - 1).getCreatedTime();
         Integer nextTimeInt = Math.toIntExact(nextTime.toEpochSecond(ZoneOffset.of("+8")));
