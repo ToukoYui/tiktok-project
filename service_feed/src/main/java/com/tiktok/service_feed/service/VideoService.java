@@ -98,7 +98,7 @@ public class VideoService {
                 BeanUtils.copyProperties(video, videoVo);
                 // 异步获取
                 // thread1.用户是否已点赞该视频 如果用户登录了才获取
-                Boolean isLike = false;
+                Boolean isLike = null;
                 if(flag){
                     isLike = asyncService.getIsLikeByVideoIdAsync(countDownLatch, Long.valueOf(tokenAuthSuccess.getUserId()), video.getId());
 
