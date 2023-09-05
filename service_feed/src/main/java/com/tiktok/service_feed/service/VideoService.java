@@ -78,38 +78,47 @@ public class VideoService {
             log.info("获取视频流，从缓存中获取------------->" + videoVoListFromRedis.toString());
             return videoVoListFromRedis;
         }
-
+        int cul;
+        boolean flag;
+        if(tokenAuthSuccess != null && tokenAuthSuccess.getIsSuccess()){
+            flag = true;
+            cul = 4;
+        }else {
+            flag = false;
+            cul = 3;
+        }
         // 缓存中没有，查询数据库
         List<Video> videoList = videoMapper.getVideoList(lastTime);
         log.info("获取视频流，从MYSQL中获取------------->" + videoList.toString());
         try {
-            countDownLatch = new CountDownLatch(4);
             // 封装VideoVo
             List<VideoVo> videoVoList = videoList.stream().map((video) -> {
+                countDownLatch = new CountDownLatch(cul);
                 VideoVo videoVo = new VideoVo();
                 BeanUtils.copyProperties(video, videoVo);
-
                 // 异步获取
                 // thread1.用户是否已点赞该视频 如果用户登录了才获取
-                if(tokenAuthSuccess != null && tokenAuthSuccess.getIsSuccess()){
-                    Boolean isLike = asyncService.getIsLikeAsync(countDownLatch, Long.valueOf(tokenAuthSuccess.getUserId()), video.getId());
-                    videoVo.setIsFavorite(isLike);
+                Boolean isLike = false;
+                if(flag){
+                    isLike = asyncService.getIsLikeByVideoIdAsync(countDownLatch, Long.valueOf(tokenAuthSuccess.getUserId()), video.getId());
+
                 }
                 // thread2.获取投稿视频的作者信息
                 UserVo authorInfo = asyncService.getAuthorInfoAsync(countDownLatch, video.getUserId());
-                videoVo.setAuthor(authorInfo);
                 // thread3.获取点赞数
                 Integer likeCount = asyncService.getLikeCountAsync(countDownLatch, video.getId());
-                videoVo.setFavoriteCount(likeCount);
                 // thread4.获取评论数
                 Integer commentCount = asyncService.getCommnetNum(countDownLatch, video.getId());
-                videoVo.setCommentCount(commentCount);
                 //当所有线程执行完毕后才继续执行后续代码
                 try {
                     countDownLatch.await();
                 } catch (InterruptedException e) {
                     log.error(e.getMessage());
                 }
+                videoVo.setIsFavorite(isLike);
+                videoVo.setAuthor(authorInfo);
+                videoVo.setFavoriteCount(likeCount);
+                videoVo.setCommentCount(commentCount);
                 return videoVo;
             }).collect(Collectors.toList());
             // 存入redis
@@ -203,22 +212,36 @@ public class VideoService {
             log.info("获取视频流，从缓存中获取------------->" + videoVoListFromRedis.toString());
             return videoVoListFromRedis;
         }
+        CountDownLatch countDownLatch = new CountDownLatch(2);
         // 获取当前登录用户的信息
-        UserVo userInfo = userFeignClient.userInfo(tokenAuthSuccess.getUserId());
+        UserVo userInfo = asyncService.getAuthorInfoAsync(countDownLatch,Long.valueOf(tokenAuthSuccess.getUserId()));
         //获取当前用户的喜欢视频数
-        userInfo.setFavoriteCount(likeFeignClient.getLikeCountByUserId(Long.valueOf(userId)));
+        Integer likeCountByUserId = asyncService.getLikeCountByUserIdAsync(countDownLatch, Long.valueOf(userId));
         // 根据当前用户id查找已发布的视频
         List<Video> videos = videoMapper.selectVideoByUserId(userId);
         if (videos == null) {
             // 用户id不存在或当前用户未发布视频则返回空
             return null;
         }
-        // 将集合中的video数据类型转换为videoVo类型
+        try {
+            countDownLatch.await();
+        } catch (InterruptedException e) {
+            log.error(e.getMessage());
+        }
+        userInfo.setFavoriteCount(likeCountByUserId);
         List<VideoVo> videoVoList = new ArrayList<>();
+        // 将集合中的video数据类型转换为videoVo类型
         for(Video video : videos){
-            Integer likeCount = likeFeignClient.getLikeCountByVideoId(video.getId());
-            Integer commentCount = commentFeignClient.getCommnetNumFromCommentModule(video.getId());
-            Boolean isLike = likeFeignClient.getIsLike(Long.valueOf(userId),video.getId());
+            countDownLatch = new CountDownLatch(3);
+            Integer likeCount = asyncService.getLikeCountAsync(countDownLatch,video.getId());
+            Integer commentCount = asyncService.getCommnetNum(countDownLatch,video.getId());
+            Boolean isLike = asyncService.getIsLikeByVideoIdAsync(countDownLatch,Long.valueOf(userId),video.getId());
+            //当所有线程执行完毕后才继续执行后续代码
+            try {
+                countDownLatch.await();
+            } catch (InterruptedException e) {
+                log.error(e.getMessage());
+            }
             videoVoList.add(new VideoVo(
                     video.getId(), userInfo, video.getPlayUrl(),
                     video.getCoverUrl(), likeCount, commentCount, isLike,
