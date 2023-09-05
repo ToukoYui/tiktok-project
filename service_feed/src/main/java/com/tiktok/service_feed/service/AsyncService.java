@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 @Service
@@ -29,10 +30,10 @@ public class AsyncService {
     private CountDownLatch countDownLatch; // 阻塞计数器
 
 
-    public Boolean getIsLikeAsync(CountDownLatch countDownLatch, Long userId,Long video) {
+    public Boolean getIsLikeByVideoIdAsync(CountDownLatch countDownLatch, Long userId,Long videoId) {
         try {
             Future<Boolean> submit = threadExecutor.submit(() -> {
-                Boolean isLike = likeFeignClient.getIsLike(userId,video);
+                Boolean isLike = likeFeignClient.getIsLike(userId,videoId);
                 log.info(Thread.currentThread().getName() + "----------->获取是否点赞");
                 return isLike;
             });
@@ -80,15 +81,30 @@ public class AsyncService {
     public Integer getCommnetNum(CountDownLatch countDownLatch, Long videoId) {
         try {
             Future<Integer> submit = threadExecutor.submit(() -> {
-                Integer likeCount = commentFeignClient.getCommnetNumFromCommentModule(videoId);
-                log.info(Thread.currentThread().getName() + "----------->获取点赞数量:"+ likeCount);
-                return likeCount;
+                Integer commentCount = commentFeignClient.getCommnetNumFromCommentModule(videoId);
+                log.info(Thread.currentThread().getName() + "----------->获取评论数量:"+ commentCount);
+                return commentCount;
             });
             return submit.get();
         } catch (Exception e) {
             log.error("查询投稿视频的评论数量失败----------->" + e.getMessage());
         } finally {
             countDownLatch.countDown(); // 计数器减1
+        }
+        return 0;
+    }
+
+    public Integer getLikeCountByUserIdAsync(CountDownLatch countDownLatch, Long userId) {
+        try {
+            Future<Integer> submit = threadExecutor.submit(()->{
+                Integer likeCount = likeFeignClient.getLikeCountByUserId(userId);
+                return likeCount;
+            });
+            submit.get();
+        } catch (Exception e) {
+            log.error("根据用户id查询用户点赞数失败----------->" + e.getMessage());
+        }finally {
+            countDownLatch.countDown();
         }
         return 0;
     }
