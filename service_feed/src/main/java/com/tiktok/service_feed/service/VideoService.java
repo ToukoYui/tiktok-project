@@ -17,8 +17,8 @@ import com.tiktok.model.vo.user.UserVo;
 import com.tiktok.model.vo.video.VideoVo;
 import com.tiktok.service_feed.config.OssPropertiesUtils;
 import com.tiktok.service_feed.mapper.VideoMapper;
+import io.jsonwebtoken.ExpiredJwtException;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +33,8 @@ import java.io.InputStream;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.*;
+
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -41,17 +43,21 @@ import java.util.stream.Collectors;
 public class VideoService {
     @Autowired
     private CommentFeignClient commentFeignClient;
-
     @Autowired
     private UserFeignClient userFeignClient;
-
-    @Autowired
-    private VideoMapper videoMapper;
     @Autowired
     private LikeFeignClient likeFeignClient;
 
+    @Autowired
+    private VideoMapper videoMapper;
+
     @Resource
     private RedisTemplate<String, List<VideoVo>> redisTemplate;
+
+    @Autowired
+    private AsyncService asyncService;
+
+    private CountDownLatch countDownLatch; // 阻塞计数器
 
     private static String[] suffixArr = {
             "mp4", "avi", "mkv", "mov", "flv",
@@ -76,29 +82,43 @@ public class VideoService {
         // 缓存中没有，查询数据库
         List<Video> videoList = videoMapper.getVideoList(lastTime);
         log.info("获取视频流，从MYSQL中获取------------->" + videoList.toString());
-        // 封装VideoVo
-        List<VideoVo> videoVoList = videoList.stream().map((video) -> {
-            String authorId = video.getUserId().toString();
-            // 获取投稿视频的用户信息
-            UserVo userInfo = userFeignClient.userInfo(authorId);
-            VideoVo videoVo = new VideoVo();
-            BeanUtils.copyProperties(video, videoVo);
-            videoVo.setAuthor(userInfo);
-            // 获取点赞数
-            Integer likeCount = likeFeignClient.getLikeCountByVideoId(video.getId());
-            videoVo.setFavoriteCount(likeCount);
-            //根据用户id和视频id获取视频是否点赞
-            if(tokenAuthSuccess != null && tokenAuthSuccess.getIsSuccess()){
-                videoVo.setIsFavorite(likeFeignClient.getIsLike(Long.valueOf(tokenAuthSuccess.getUserId()),video.getId()));
-            }
-            // 获取评论数
-            Integer commentCount = commentFeignClient.getCommnetNumFromCommentModule(video.getId());
-            videoVo.setCommentCount(commentCount);
-            return videoVo;
-        }).collect(Collectors.toList());
-        // 存入redis
-        redisTemplate.opsForValue().set(redisKey, videoVoList, 3, TimeUnit.MINUTES);
-        return videoVoList;
+        try {
+            countDownLatch = new CountDownLatch(4);
+            // 封装VideoVo
+            List<VideoVo> videoVoList = videoList.stream().map((video) -> {
+                VideoVo videoVo = new VideoVo();
+                BeanUtils.copyProperties(video, videoVo);
+
+                // 异步获取
+                // thread1.用户是否已点赞该视频 如果用户登录了才获取
+                if(tokenAuthSuccess != null && tokenAuthSuccess.getIsSuccess()){
+                    Boolean isLike = asyncService.getIsLikeAsync(countDownLatch, Long.valueOf(tokenAuthSuccess.getUserId()), video.getId());
+                    videoVo.setIsFavorite(isLike);
+                }
+                // thread2.获取投稿视频的作者信息
+                UserVo authorInfo = asyncService.getAuthorInfoAsync(countDownLatch, video.getUserId());
+                videoVo.setAuthor(authorInfo);
+                // thread3.获取点赞数
+                Integer likeCount = asyncService.getLikeCountAsync(countDownLatch, video.getId());
+                videoVo.setFavoriteCount(likeCount);
+                // thread4.获取评论数
+                Integer commentCount = asyncService.getCommnetNum(countDownLatch, video.getId());
+                videoVo.setCommentCount(commentCount);
+                //当所有线程执行完毕后才继续执行后续代码
+                try {
+                    countDownLatch.await();
+                } catch (InterruptedException e) {
+                    log.error(e.getMessage());
+                }
+                return videoVo;
+            }).collect(Collectors.toList());
+            // 存入redis
+            redisTemplate.opsForValue().set(redisKey, videoVoList, 3, TimeUnit.MINUTES);
+            return videoVoList;
+        } catch (ExpiredJwtException jwtException) {
+            log.error("token过期，无法获取视频流------------->" + jwtException.getMessage());
+            return null;
+        }
     }
 
     private COSClient getCosClient() {

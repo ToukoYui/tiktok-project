@@ -1,6 +1,7 @@
 package com.tiktok.service_comment.service;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.tiktok.common_util.utils.JjwtUtil;
 import com.tiktok.feign_util.utils.UserFeignClient;
 import com.tiktok.model.entity.comment.Comment;
 import com.tiktok.model.vo.TokenAuthSuccess;
@@ -58,13 +59,7 @@ public class CommentService {
     public CommentVo publishComment(TokenAuthSuccess tokenAuthSuccess, Long videoId, String commentText) {
         // 获取当前登录用户id
         String token = tokenAuthSuccess.getToken();
-        /*
-           json序列化器有个坑：从redis获取Long值最终拿到的是Integer类型，
-           如果直接赋值给Long引用会抛Integer无法转化为Long异常,这里用Object接收
-         */
-        Object object = redisTemplateLong.opsForValue().get("user:token:" + token);
-        Long userId = Long.valueOf((Integer) object);
-
+        Long userId = JjwtUtil.getUserId(token);
         // 获取当前日期 mm-dd
         long current = System.currentTimeMillis();
         Date currentDate = new Date(current);
