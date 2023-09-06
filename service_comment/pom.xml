@@ -78,6 +78,16 @@
             <artifactId>netty-all</artifactId>
             <version>4.1.24.Final</version>
         </dependency>
+        <!--链路追踪-->
+        <dependency>
+            <groupId>io.opentracing.contrib</groupId>
+            <artifactId>opentracing-spring-jaeger-web-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.opentracing.contrib</groupId>
+            <artifactId>opentracing-spring-cloud-feign-starter</artifactId>
+        </dependency>
+
         <!--模块导入-->
         <dependency>
             <groupId>com.tiktok</groupId>

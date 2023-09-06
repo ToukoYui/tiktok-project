@@ -79,3 +79,13 @@ async:
       queue_capacity: 999
       name:
         prefix: async-service-
+
+
+opentracing:
+  jaeger:
+    enabled: true
+    http-sender:
+      url: http://8.134.208.93:14268/api/traces #将跟踪数据发送到 Jaeger 服务器
+#    udp-sender:
+#      host: 8.134.208.93
+#      port: 6831

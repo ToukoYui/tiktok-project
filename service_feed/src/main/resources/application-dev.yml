@@ -73,3 +73,9 @@ async:
       queue_capacity: 999
       name:
         prefix: async-service-
+
+opentracing:
+  jaeger:
+    enabled: true
+    http-sender:
+      url: http://8.134.208.93:14268/api/traces

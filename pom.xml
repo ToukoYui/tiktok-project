@@ -41,6 +41,8 @@
         <oss.version>3.10.2</oss.version>
         <jodatime.version>2.10.1</jodatime.version>
         <lombok.version>1.18.24</lombok.version>
+        <opentracing.jaeger>3.0.0</opentracing.jaeger>
+        <opentracing.feign>0.5.9</opentracing.feign>
     </properties>
 
 
@@ -88,42 +90,29 @@
                 <scope>runtime</scope>
             </dependency>
 
-<!--            &lt;!&ndash;swagger&ndash;&gt;-->
-<!--            <dependency>-->
-<!--                <groupId>io.springfox</groupId>-->
-<!--                <artifactId>springfox-swagger2</artifactId>-->
-<!--                <version>${swagger.version}</version>-->
-<!--            </dependency>-->
-<!--            &lt;!&ndash;swagger ui&ndash;&gt;-->
-<!--            <dependency>-->
-<!--                <groupId>io.springfox</groupId>-->
-<!--                <artifactId>springfox-swagger-ui</artifactId>-->
-<!--                <version>${swagger.version}</version>-->
-<!--            </dependency>-->
-
             <dependency>
                 <groupId>io.jsonwebtoken</groupId>
                 <artifactId>jjwt</artifactId>
                 <version>${jwt.version}</version>
             </dependency>
 
-<!--            <dependency>-->
-<!--                <groupId>org.apache.httpcomponents</groupId>-->
-<!--                <artifactId>httpclient</artifactId>-->
-<!--                <version>${httpclient.version}</version>-->
-<!--            </dependency>-->
-
             <dependency>
                 <groupId>com.alibaba</groupId>
                 <artifactId>fastjson</artifactId>
                 <version>${fastjson.version}</version>
             </dependency>
-
-<!--            <dependency>-->
-<!--                <groupId>com.aliyun</groupId>-->
-<!--                <artifactId>aliyun-java-sdk-core</artifactId>-->
-<!--                <version>${aliyun.version}</version>-->
-<!--            </dependency>-->
+            <!--链路追踪-->
+            <dependency>
+                <groupId>io.opentracing.contrib</groupId>
+                <artifactId>opentracing-spring-jaeger-web-starter</artifactId>
+                <version>${opentracing.jaeger}</version>
+            </dependency>
+            <!--jaeger监控Feign-->
+            <dependency>
+                <groupId>io.opentracing.contrib</groupId>
+                <artifactId>opentracing-spring-cloud-feign-starter</artifactId>
+                <version>${opentracing.feign}</version>
+            </dependency>
 
 <!--            &lt;!&ndash;日期时间工具&ndash;&gt;-->
 <!--            <dependency>-->

@@ -62,3 +62,9 @@ tencentyun:
     secretId: ENC(Z3G9H2hwpdQMR1XbLcQxRr4T0wT8tVfBcUEhhP3PbBU41ODHLXu2hJ/y/95nKkrZ)
     secretKey: ENC(NAVTBxcwmDTcgKidk60YDWNh3t/OiaiuHJLVEshs+R8cFRsy1wFeRwBQ6LVEZ4rZ)
 
+opentracing:
+  jaeger:
+    enabled: true
+    http-sender:
+      url: http://8.134.208.93:14268/api/traces
+

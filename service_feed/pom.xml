@@ -7,12 +7,7 @@
         <artifactId>tiktok_project</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
-<!--    <parent>-->
-<!--        <groupId>org.springframework.boot</groupId>-->
-<!--        <artifactId>spring-boot-starter-parent</artifactId>-->
-<!--        <version>2.2.1.RELEASE</version>-->
-<!--        <relativePath/> &lt;!&ndash; lookup parent from repository &ndash;&gt;-->
-<!--    </parent>-->
+
     <groupId>com.tiktok</groupId>
     <artifactId>service_feed</artifactId>
     <version>0.0.1-SNAPSHOT</version>
@@ -94,6 +89,18 @@
             <artifactId>netty-all</artifactId>
             <version>4.1.24.Final</version>
         </dependency>
+        <!--链路追踪-->
+        <dependency>
+            <groupId>io.opentracing.contrib</groupId>
+            <artifactId>opentracing-spring-jaeger-web-starter</artifactId>
+        </dependency>
+        <!--监控Feign-->
+        <dependency>
+            <groupId>io.opentracing.contrib</groupId>
+            <artifactId>opentracing-spring-cloud-feign-starter</artifactId>
+        </dependency>
+
+
         <!--模块导入-->
         <dependency>
             <groupId>com.tiktok</groupId>

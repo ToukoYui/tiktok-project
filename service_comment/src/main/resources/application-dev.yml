@@ -46,5 +46,11 @@ tokenbucket:
   capacity: 100
   rate: 1
 
+opentracing:
+  jaeger:
+    enabled: true
+    http-sender:
+      url: http://8.134.208.93:14268/api/traces
+
 
 

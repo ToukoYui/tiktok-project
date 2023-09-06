@@ -54,3 +54,12 @@ feign:
         connectTimeout: 10000
         readTimeout: 10000
         loggerLevel: FULL
+
+opentracing:
+  jaeger:
+    enabled: true
+    http-sender:
+      url: http://8.134.208.93:14268/api/traces
+#    udp-sender:
+#      host: 8.134.208.93
+#      port: 6831
