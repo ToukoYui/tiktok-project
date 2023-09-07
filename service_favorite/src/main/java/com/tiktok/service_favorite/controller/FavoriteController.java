@@ -7,11 +7,8 @@ import com.tiktok.model.vo.video.VideoVo;
 import com.tiktok.service_favorite.mapper.LikesMapper;
 import com.tiktok.service_favorite.service.LikesService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
-import java.util.List;
 
 @RestController
 @RequestMapping("/favorite")
@@ -21,28 +18,62 @@ public class FavoriteController {
 
     @Autowired
     private LikesMapper likesMapper;
+
     @PostMapping("/action")
-    public FavoriteResp like(@RequestParam("video_id")Long videoId, @RequestParam("action_type") String actionType,@TokenAuthAnno TokenAuthSuccess tokenAuthSuccess){
-        if(!tokenAuthSuccess.getIsSuccess()){
-            return new FavoriteResp("500","请先登录哦~",null);
+    public FavoriteResp like(@RequestParam("video_id") Long videoId, @RequestParam("action_type") String actionType, @TokenAuthAnno TokenAuthSuccess tokenAuthSuccess) {
+        if (tokenAuthSuccess == null || !tokenAuthSuccess.getIsSuccess()) {
+            return new FavoriteResp("500", "请先登录哦~", null);
         }
-        return likesService.liked(videoId,actionType,tokenAuthSuccess);
+        return likesService.liked(videoId, actionType, tokenAuthSuccess);
     }
+    /**
+     * 根据视频id获取用户的喜欢视频数量
+     * 内部接口，供user模块调用
+     * videoId
+     * @param
+     * @return
+     */
     @GetMapping("/like/count")
-    Integer getLikeCount(@RequestParam("videoId") Long videoId){
-        return likesMapper.getLikeCount(videoId);
+    Integer getLikeCountByVideoId(@RequestParam("videoId") Long videoId) {
+        return likesMapper.getLikeCountByVideoId(videoId);
     }
+
+    /**
+     * 根据userId获取用户的喜欢视频数量
+     * 内部接口，供user模块调用
+     *
+     * @param userId
+     * @return
+     */
     @GetMapping("/like/userCount")
-    Integer getLikeCountByUserId(@RequestParam("userId") Long userId){
+    Integer getLikeCountByUserId(@RequestParam("userId") Long userId) {
         return likesMapper.getLikeCountByUserId(userId);
     }
+    /**
+     * 根据用户id和视频id获取用户的喜欢视频数量
+     * 内部接口，供user模块调用
+     *
+     * @param userId
+     * @param videoId
+     * @return
+     */
     @GetMapping("/like/isFav")
-    Boolean getIsLike(@RequestParam("userId") Long userId,@RequestParam("videoId")Long videoId){
-        Integer isLike = likesMapper.getIsLike(userId,videoId);
+    Boolean getIsLike(@RequestParam("userId") Long userId, @RequestParam("videoId") Long videoId) {
+        Integer isLike = likesMapper.getIsLike(userId, videoId);
+        if (isLike == null){
+            return false;
+        }
         return isLike != 0;
     }
+
+
     @GetMapping("/list")
-    public FavoriteResp list(@RequestParam("user_id")Long userId,@TokenAuthAnno TokenAuthSuccess tokenAuthSuccess){
-        return null;
+    public FavoriteResp getLikedVideoList(@RequestParam("user_id") String userId, @TokenAuthAnno TokenAuthSuccess tokenAuthSuccess) {
+        if (tokenAuthSuccess == null || !tokenAuthSuccess.getIsSuccess()) {
+            return new FavoriteResp("500", "请先登录哦~", null);
+        }
+        return likesService.getLikedVideoList(userId);
     }
+
+
 }

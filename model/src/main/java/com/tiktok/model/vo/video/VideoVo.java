@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.tiktok.model.vo.user.UserVo;
+import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -28,8 +29,9 @@ public class VideoVo {
     @JsonProperty("comment_count")
     private Integer commentCount;
 
+    @Builder.Default
     @JsonProperty("is_favorite")
-    private Boolean isFavorite;
+    private Boolean isFavorite = false;
 
     @JsonProperty("title")
     private String title;

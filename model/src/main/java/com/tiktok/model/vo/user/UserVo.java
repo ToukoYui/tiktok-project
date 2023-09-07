@@ -13,19 +13,19 @@ public class UserVo {
     private String avatar;
 
     @JsonProperty("follow_count")
-    private Long followCount;
+    private Integer followCount;
 
     @JsonProperty("follower_count")
-    private Long followerCount;
+    private Integer followerCount;
 
     @JsonProperty("is_follow")
     private Boolean isFollow;
 
     @JsonProperty("total_favorited")
-    private Long totalFavoritedCount;
+    private Integer totalFavoritedCount;
 
     @JsonProperty("work_count")
-    private Long workCount;
+    private Integer workCount;
 
     @JsonProperty("favorite_count")
     private Integer favoriteCount;

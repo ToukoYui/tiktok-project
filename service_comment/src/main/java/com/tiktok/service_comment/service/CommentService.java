@@ -1,6 +1,7 @@
 package com.tiktok.service_comment.service;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.tiktok.common_util.utils.JjwtUtil;
 import com.tiktok.feign_util.utils.UserFeignClient;
 import com.tiktok.model.entity.comment.Comment;
 import com.tiktok.model.vo.TokenAuthSuccess;
@@ -58,13 +59,7 @@ public class CommentService {
     public CommentVo publishComment(TokenAuthSuccess tokenAuthSuccess, Long videoId, String commentText) {
         // 获取当前登录用户id
         String token = tokenAuthSuccess.getToken();
-        /*
-           json序列化器有个坑：从redis获取Long值最终拿到的是Integer类型，
-           如果直接赋值给Long引用会抛Integer无法转化为Long异常,这里用Object接收
-         */
-        Object object = redisTemplateLong.opsForValue().get("user:token:" + token);
-        Long userId = Long.valueOf((Integer) object);
-
+        Long userId = JjwtUtil.getUserId(token);
         // 获取当前日期 mm-dd
         long current = System.currentTimeMillis();
         Date currentDate = new Date(current);
@@ -79,14 +74,9 @@ public class CommentService {
         CommentVo commentVo = new CommentVo();
         BeanUtil.copyProperties(comment, commentVo);
 
-        UserVo userInfo;
+
         // 获取当前登录用户的信息
-        // token是有可能为空的
-        if (StringUtils.isEmpty(token)) {
-            userInfo = userFeignClient.getUserInfoFromUserModuleByNotToken(String.valueOf(userId));
-        } else {
-            userInfo = userFeignClient.getUserInfoFromUserModule(String.valueOf(userId), token).getUserVo();
-        }
+        UserVo userInfo = userFeignClient.userInfo(String.valueOf(userId));
         commentVo.setUser(userInfo);
 
         // 清空该视频的所有评论id列表缓存，但单个的具体评论不仍然留着
@@ -124,23 +114,24 @@ public class CommentService {
         List<Long> commentIdListFromMysql = new ArrayList<>();
         // 封装数据
         List<CommentVo> commentVoList = new ArrayList<>();
-        if(commentList.size() >0) {
+        if (commentList.size() > 0) {
             commentVoList = commentList.stream().map(
                     (comment) -> {
                         String userId = comment.getUserId().toString();
                         // 获取用户信息
-                        UserVo userInfo = userFeignClient.getUserInfoFromUserModuleByNotToken(userId);
+                        UserVo userInfo = userFeignClient.userInfo(userId);
                         CommentVo commentVo = new CommentVo();
                         BeanUtil.copyProperties(comment, commentVo);
                         commentVo.setUser(userInfo);
                         // 具体评论json单独存入redis中
-                        redisTemplateCommentVo.opsForValue().set(keyPre + comment.getId(), commentVo, 3, TimeUnit.MINUTES);
+                        redisTemplateCommentVo.opsForValue().set(keyPre + comment.getId(), commentVo, 24, TimeUnit.HOURS);
                         commentIdListFromMysql.add(comment.getId());
                         return commentVo;
                     }
             ).collect(Collectors.toList());
             // 将评论id列表存入redis中
             redisTemplateLong.opsForList().rightPushAll(key, commentIdListFromMysql);
+            redisTemplateLong.expire(key,2,TimeUnit.HOURS);
         }
         // 评论
         return commentVoList;
@@ -148,18 +139,20 @@ public class CommentService {
 
     /**
      * 获取视频的评论数
+     *
      * @param videoId
      * @return
      */
-    public Integer getCommentCount(Long videoId){
+    public Integer getCommentCount(Long videoId) {
         return commentMapper.queryCommentNumByVideoId(videoId);
     }
 
     /**
      * 删除某条评论
+     *
      * @param commentId
      */
-    public void deleteComment(Long commentId,Long videoId){
+    public void deleteComment(Long commentId, Long videoId) {
         commentMapper.deleteCommentById(commentId);
         // 清空评论id列表缓存
         String deleteKey = "comment:" + videoId + ":commentIdList:*";

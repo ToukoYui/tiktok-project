@@ -13,17 +13,25 @@
         set is_favorite = #{isFavorite}
         where user_id = #{userId} and video_id = #{videoId}
     </update>
-    <select id="getLikeCount" resultType="java.lang.Integer" parameterType="java.lang.Long">
-        select count(1) from tb_likes where video_id = #{videoId}
+    <select id="getLikeCountByVideoId" resultType="java.lang.Integer" parameterType="java.lang.Long">
+        select count(1) from tb_likes where video_id = #{videoId} and is_favorite = 1
     </select>
     <select id="getLikeCountByUserId" resultType="java.lang.Integer" parameterType="java.lang.Long">
-        select count(1) from tb_likes where user_id = #{userId}
+        select count(1) from tb_likes where user_id = #{userId} and is_favorite = 1
     </select>
     <select id="getIsLike" resultType="java.lang.Integer" parameterType="java.lang.Long">
         select is_favorite from tb_likes where user_id = #{userId} and video_id = #{videoId}
     </select>
     <select id="selectLike" resultType="java.lang.Integer">
+        select count(1) from tb_likes where user_id = #{userId} and video_id = #{videoId} and is_favorite = 1
+    </select>
+
+    <select id="getVideoIdByUserId" resultType="java.lang.Long">
+        select video_id from tb_likes where user_id = #{userId} and is_favorite = 1
+    </select>
+    <select id="selectIsLiked" resultType="java.lang.Integer">
         select count(1) from tb_likes where user_id = #{userId} and video_id = #{videoId}
     </select>
+
 
 </mapper>

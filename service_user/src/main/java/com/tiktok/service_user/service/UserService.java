@@ -3,6 +3,8 @@ package com.tiktok.service_user.service;
 import cn.hutool.core.bean.BeanUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.tiktok.common_util.utils.JjwtUtil;
+import com.tiktok.feign_util.utils.LikeFeignClient;
+import com.tiktok.feign_util.utils.VideoFeignClient;
 import com.tiktok.model.vo.user.UserVo;
 import com.tiktok.service_user.mapper.UserMapper;
 import com.tiktok.model.entity.user.User;
@@ -24,6 +26,11 @@ public class UserService {
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private VideoFeignClient videoFeignClient;
+    @Autowired
+    private LikeFeignClient likeFeignClient;
 
     /**
      * 用户注册功能
@@ -125,10 +132,15 @@ public class UserService {
                     return new UserVo();
                 }
                 // 存储到redis中
-                // Long类型的数据转换为String类型可能会出现bug
                 UserVo userVo = BeanUtil.copyProperties(user, UserVo.class);
+                // 获取发布视频的数量
+                Integer videoNum = videoFeignClient.getVideoNumByUserId(userId);
+                // 获取喜欢视频的数量
+                Integer likedVideoNum = likeFeignClient.getLikeCountByUserId(userId);
+                userVo.setWorkCount(videoNum);
+                userVo.setFavoriteCount(likedVideoNum);
                 jsonObjectStr = JSONObject.toJSONString(userVo);
-                redisTemplate.opsForValue().set(key,jsonObjectStr,30,TimeUnit.MINUTES);
+                redisTemplate.opsForValue().set(key,jsonObjectStr,2,TimeUnit.HOURS);
             }
         }
         // 转换为对象
