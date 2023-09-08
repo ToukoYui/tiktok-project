@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiktok.service_relation.mapper.RelationMapper">
+
+    <insert id="insertRelate">
+        insert into tb_follows
+            (user_id, follow_id, is_follow)
+        values
+            (#{userId},#{toUserId},#{isRelated})
+    </insert>
+
+
+    <update id="updateRelated">
+        update tb_follows
+        set is_follow = #{isRelated}
+        where user_id = #{userId} and follow_id=#{toUserId}
+    </update>
+
+
+    <select id="selectIsRelated" resultType="java.lang.Integer">
+        select count(1) from tb_follows where user_id = #{userId} and follow_id=#{toUserId}
+    </select>
+
+
+    <select id="getFollowUserIds" resultType="java.lang.Integer">
+        select follow_id from tb_follows where user_id = #{userId} and is_follow = 1
+    </select>
+
+    <select id="selectFollowUserCount" resultType="java.lang.Integer">
+        select count(1) from tb_follows where user_id = #{userId} and is_follow = true
+    </select>
+
+    <select id="selectFollowerCount" resultType="java.lang.Integer">
+        select count(1) from tb_follows where follow_id = #{userId} and is_follow = true
+    </select>
+
+    <select id="getFollowerIds" resultType="java.lang.Integer">
+        select user_id from tb_follows where follow_id = #{userId} and is_follow = true
+    </select>
+
+</mapper>
