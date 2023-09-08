@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.tiktok.common_util.utils.JjwtUtil;
 import com.tiktok.feign_util.utils.LikeFeignClient;
+import com.tiktok.feign_util.utils.RelationFeignClient;
 import com.tiktok.feign_util.utils.VideoFeignClient;
 import com.tiktok.model.vo.user.UserVo;
 import com.tiktok.service_user.mapper.UserMapper;
@@ -11,13 +12,16 @@ import com.tiktok.model.entity.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import com.tiktok.model.vo.user.UserLoginResp;
 import com.tiktok.model.vo.user.UserRegisterResp;
-import org.springframework.web.context.request.NativeWebRequest;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -31,9 +35,12 @@ public class UserService {
     private VideoFeignClient videoFeignClient;
     @Autowired
     private LikeFeignClient likeFeignClient;
+    @Autowired
+    private RelationFeignClient relationFeignClient;
 
     /**
      * 用户注册功能
+     *
      * @param username
      * @param password
      * @return
@@ -41,7 +48,7 @@ public class UserService {
     public UserRegisterResp userRegister(String username, String password) {
         UserRegisterResp userRegisterResp = new UserRegisterResp();
         // 输入信息非空则进行注册
-        if (!StringUtils.isEmpty(username) && !StringUtils.isEmpty(password)){
+        if (!StringUtils.isEmpty(username) && !StringUtils.isEmpty(password)) {
             // 查询用户
             User user = userMapper.selectByUserNameAndPassword(username, password);
             if (user == null) {
@@ -77,8 +84,7 @@ public class UserService {
 
     /**
      * 用户登录功能
-     * 还需要一个过滤/拦截器来验证token
-     * 密码加密
+     *
      * @param username
      * @param password
      * @return
@@ -87,7 +93,7 @@ public class UserService {
         UserLoginResp userLoginResp = new UserLoginResp();
 
 
-        if (StringUtils.isEmpty(username) || StringUtils.isEmpty(password)){
+        if (StringUtils.isEmpty(username) || StringUtils.isEmpty(password)) {
             userLoginResp.setStatusMsg("用户信息填写有误");
             userLoginResp.setStatusCode(401);
         } else {
@@ -113,26 +119,33 @@ public class UserService {
     /**
      * 获取用户信息功能
      * 可能会有Long类型转换为String类型的bug
+     *
      * @param userId
      * @return
      */
-    public UserVo getUserInfo(Long userId){
+    public UserVo getUserInfo(Long userId) {
         String key = "user:" + userId;
         // 先去redis中查询,查询不到再去数据库,并存入redis中
         String jsonObjectStr = redisTemplate.opsForValue().get(key);
-        if(jsonObjectStr == null){
+        if (jsonObjectStr == null) {
             // 如果获取不到则去数据库查询,并缓存到redis中
             String id = String.valueOf(userId);
             // 对id进行非空判断
-            if(id != null && !id.equals("")){
+            if (id != null && !id.equals("")) {
                 User user = userMapper.selectByUserId(id);
                 // 如果获取不到user,说明提供的userId有误
-                if(user == null){
+                if (user == null) {
                     // 返回一个空对象
                     return new UserVo();
                 }
                 // 存储到redis中
                 UserVo userVo = BeanUtil.copyProperties(user, UserVo.class);
+                // 获取当前用户关注总数
+                Integer followUserCount = relationFeignClient.getFollowUserCount(userVo.getId());
+                userVo.setFollowCount(followUserCount);
+                // 获取当前用户的粉丝总数
+                Integer followerCount = relationFeignClient.getFollowerCount(userVo.getId());
+                userVo.setFollowerCount(followerCount);
                 // 获取发布视频的数量
                 Integer videoNum = videoFeignClient.getVideoNumByUserId(userId);
                 // 获取喜欢视频的数量
@@ -140,10 +153,47 @@ public class UserService {
                 userVo.setWorkCount(videoNum);
                 userVo.setFavoriteCount(likedVideoNum);
                 jsonObjectStr = JSONObject.toJSONString(userVo);
-                redisTemplate.opsForValue().set(key,jsonObjectStr,2,TimeUnit.HOURS);
+                redisTemplate.opsForValue().set(key, jsonObjectStr, 2, TimeUnit.HOURS);
             }
         }
         // 转换为对象
-        return JSONObject.parseObject(jsonObjectStr,UserVo.class);
+        return JSONObject.parseObject(jsonObjectStr, UserVo.class);
+    }
+
+
+
+    /**
+     * 根据用户id列表获取用户信息列表
+     *
+     * @param userIdList
+     * @return
+     */
+    public List<UserVo> getUserInfoList(List<Long> userIdList) {
+        if (CollectionUtils.isEmpty(userIdList)) {
+            return new ArrayList<UserVo>();
+        }
+        List<User> userList = userMapper.getUserInfoListByIdList(userIdList);
+        List<UserVo> userVoList = userList.stream().map(
+                user -> {
+                    UserVo userVo = new UserVo();
+                    BeanUtil.copyProperties(user, userVo);
+                    // 获取当前用户关注总数
+                    Integer followUserCount = relationFeignClient.getFollowUserCount(userVo.getId());
+                    userVo.setFollowCount(followUserCount);
+                    // 获取当前用户的粉丝总数
+                    Integer followerCount = relationFeignClient.getFollowerCount(userVo.getId());
+                    userVo.setFollowerCount(followerCount);
+                    // 获取发布视频的数量
+                    Integer videoNum = videoFeignClient.getVideoNumByUserId(userVo.getId());
+                    // 获取喜欢视频的数量
+                    Integer likedVideoNum = likeFeignClient.getLikeCountByUserId(userVo.getId());
+                    userVo.setWorkCount(videoNum);
+                    userVo.setFavoriteCount(likedVideoNum);
+                    // 设置为已关注
+                    userVo.setIsFollow(true);
+                    return userVo;
+                }
+        ).collect(Collectors.toList());
+        return userVoList;
     }
 }

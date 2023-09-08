@@ -14,7 +14,17 @@
         select * from tb_user where username = #{username} and password = #{password}
     </select>
 
-<!--    保存新用户-->
+    <!--    根据id列表获取用户信息列表-->
+    <select id="getUserInfoListByIdList" resultType="com.tiktok.model.entity.user.User">
+        select * from tb_user where id
+        in (
+            <foreach collection="userIdList" item="userId" separator=",">
+                #{userId}
+            </foreach>
+           )
+    </select>
+
+    <!--    保存新用户-->
     <insert id="insert" useGeneratedKeys="true" keyColumn="id" keyProperty="id" parameterType="com.tiktok.model.entity.user.User">
         insert into tb_user
         <trim prefix="(" suffix=")" suffixOverrides=",">

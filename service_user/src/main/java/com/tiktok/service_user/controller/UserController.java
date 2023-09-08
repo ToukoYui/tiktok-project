@@ -2,7 +2,6 @@ package com.tiktok.service_user.controller;
 
 import com.tiktok.model.anno.TokenAuthAnno;
 import com.tiktok.model.vo.TokenAuthSuccess;
-import com.tiktok.model.vo.video.VideoResp;
 import com.tiktok.service_user.config.TokenBacketLimiter;
 import com.tiktok.service_user.service.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +12,8 @@ import com.tiktok.model.vo.user.UserRegisterResp;
 import com.tiktok.model.vo.user.UserResp;
 import com.tiktok.model.vo.user.UserVo;
 import org.springframework.web.context.request.NativeWebRequest;
+
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -87,5 +88,19 @@ public class UserController {
     public UserResp userLogout(NativeWebRequest nativeWebRequest) {
         return new UserResp("0", "注销成功", null);
     }
+
+
+    /**
+     * 根据用户id列表查询用户信息列表
+     * 内部接口,供relation模块使用
+     *
+     * @param userIdList
+     * @return
+     */
+    @GetMapping("/inner/userinfolist")
+    public List<UserVo> getUserInfoList(@RequestParam("userIdList") List<Long> userIdList) {
+        return userService.getUserInfoList(userIdList);
+    }
+
 
 }
