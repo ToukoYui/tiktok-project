@@ -15,4 +15,6 @@ public interface RelationFeignClient {
     @GetMapping("douyin/relation/inner/follower/count")
     Integer getFollowerCount(@RequestParam("userId") Long userId);
 
+    @GetMapping("douyin/relation/inner/follow/relationship")
+    boolean getIsRelated(@RequestParam("authorId") Long authorId,@RequestParam("userId") Long userId);
 }

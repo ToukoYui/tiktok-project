@@ -67,6 +67,7 @@ public class VideoController {
         return new PublishResp(0, "视频发布成功");
     }
 
+
     /**
      * 获取登录用户发布的视频列表,直接列出当前用户所有投稿过的视频
      *

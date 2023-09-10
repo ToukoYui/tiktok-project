@@ -20,4 +20,6 @@ public interface RelationMapper {
     Integer selectFollowerCount(Long userId);
 
     List<Integer> getFollowerIds(Long userId);
+
+    Integer getIsRelated(Long authorId, Long userId);
 }

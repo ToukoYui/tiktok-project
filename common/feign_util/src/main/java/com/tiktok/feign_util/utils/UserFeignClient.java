@@ -17,6 +17,6 @@ public interface UserFeignClient {
 
     // 无token调用,内部用
     @GetMapping("/douyin/user/inner/userinfolist")
-    List<UserVo> getUserInfoList(@RequestParam("userIdList") List<Long> userIdList);
+    List<UserVo> getUserInfoList(@RequestParam("userIdList") List<Long> userIdList,@RequestParam("userId") Long userId);
 
 }

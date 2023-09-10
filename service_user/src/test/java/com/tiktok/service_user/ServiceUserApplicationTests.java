@@ -62,7 +62,7 @@ class ServiceUserApplicationTests {
         longs.add(1L);
         longs.add(5L);
         longs.add(2L);
-        List<UserVo> userInfoList = userService.getUserInfoList(longs);
-        System.out.println(userInfoList);
+//        List<UserVo> userInfoList = userService.getUserInfoList(longs);
+//        System.out.println(userInfoList);
     }
 }
