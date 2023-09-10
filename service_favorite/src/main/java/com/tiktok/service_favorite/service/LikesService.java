@@ -19,6 +19,7 @@ import java.util.concurrent.TimeUnit;
 public class LikesService {
     @Autowired
     private LikesMapper likesMapper;
+
     @Resource
     private RedisTemplate<String, List<VideoVo>> redisTemplate;
 
