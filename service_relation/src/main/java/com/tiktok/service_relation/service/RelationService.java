@@ -58,6 +58,9 @@ public class RelationService {
     public RelationResp related(Long toUserId, String actionType, TokenAuthSuccess tokenAuthSuccess) {
         try {
             String userId = tokenAuthSuccess.getUserId();
+            if (toUserId == Long.valueOf(userId)){
+                return new RelationResp("400", "你不能对自己进行此操作哦~",null);
+            }
             // 当前用户的关注者id列表
             String followUserIdKey = "followUserIds:" + userId;
             // 当前用户的粉丝id列表
