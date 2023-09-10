@@ -112,6 +112,8 @@ public class UserService {
                 userLoginResp.setStatusCode(401);
             }
         }
+        // 用户登录完需要删除视频缓存
+        redisTemplate.delete("videolist:public");
         return userLoginResp;
     }
 
@@ -152,6 +154,8 @@ public class UserService {
                 Integer likedVideoNum = likeFeignClient.getLikeCountByUserId(userId);
                 userVo.setWorkCount(videoNum);
                 userVo.setFavoriteCount(likedVideoNum);
+                // 设置关注情况,默认是false
+                userVo.setIsFollow(false);
                 jsonObjectStr = JSONObject.toJSONString(userVo);
                 redisTemplate.opsForValue().set(key, jsonObjectStr, 2, TimeUnit.HOURS);
             }
@@ -161,14 +165,13 @@ public class UserService {
     }
 
 
-
     /**
      * 根据用户id列表获取用户信息列表
      *
      * @param userIdList
      * @return
      */
-    public List<UserVo> getUserInfoList(List<Long> userIdList) {
+    public List<UserVo> getUserInfoList(List<Long> userIdList, Long userId) {
         if (CollectionUtils.isEmpty(userIdList)) {
             return new ArrayList<UserVo>();
         }
@@ -189,11 +192,14 @@ public class UserService {
                     Integer likedVideoNum = likeFeignClient.getLikeCountByUserId(userVo.getId());
                     userVo.setWorkCount(videoNum);
                     userVo.setFavoriteCount(likedVideoNum);
-                    // 设置为已关注
-                    userVo.setIsFollow(true);
+                    // 获取关注关系
+                    boolean isRelated = relationFeignClient.getIsRelated(userVo.getId(), userId);
+                    userVo.setIsFollow(isRelated);
                     return userVo;
                 }
         ).collect(Collectors.toList());
         return userVoList;
     }
+
+
 }

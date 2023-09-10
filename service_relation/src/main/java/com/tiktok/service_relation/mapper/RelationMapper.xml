@@ -38,4 +38,8 @@
         select user_id from tb_follows where follow_id = #{userId} and is_follow = true
     </select>
 
+    <select id="getIsRelated" resultType="java.lang.Integer">
+        select is_follow from tb_follows where user_id=#{userId} and follow_id = #{authorId}
+    </select>
+
 </mapper>

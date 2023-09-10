@@ -123,13 +123,14 @@ public class RelationService {
             e.printStackTrace();
             return new RelationResp("500", "服务器出错,关注失败", null);
         }
-        // todo 仔细思考是否正确 因为这个缓存是我们没有的
-//        redisTemplate.delete("userlist:public");
+        // 删除所视频缓存
+//        redisTemplate.delete("user:*");
+        redisTemplate.delete("videolist:public");
         return new RelationResp("0", actionType.equals("1") ? "关注成功" : "取消关注成功", null);
     }
 
 
-    public RelationResp getRelatedUserList(Long userId) {
+    public RelationResp getRelatedUserList(Long userId, TokenAuthSuccess tokenAuthSuccess) {
         // 查询缓存中是否存在
         String key = "followUser:" + userId;
         String idKey = "followUserIds:" + userId;
@@ -147,7 +148,7 @@ public class RelationService {
 //        List<Integer> followUserIds = relationMapper.getFollowUserIds(userId);
 
         // 根据用户id列表获取关注用户详情列表
-        List<UserVo> userInfoList = userFeignClient.getUserInfoList(userIdList);
+        List<UserVo> userInfoList = userFeignClient.getUserInfoList(userIdList,Long.valueOf(tokenAuthSuccess.getUserId()));
         // 存入redis中
         redisTemplate.opsForValue().set(key, userInfoList, 2, TimeUnit.HOURS);
         log.info("获取关注用户列表------------->从MySQL中查询");
@@ -155,7 +156,7 @@ public class RelationService {
     }
 
 
-    public RelationResp getFollowerList(Long userId) {
+    public RelationResp getFollowerList(Long userId, TokenAuthSuccess tokenAuthSuccess) {
         // 查询缓存中是否存在
         String key = "follower:" + userId;
         String idKey = "followerIds:" + userId;
@@ -171,7 +172,7 @@ public class RelationService {
                 Long::valueOf
         ).collect(Collectors.toList());
         // 根据用户id列表获取粉丝用户详情列表
-        List<UserVo> userInfoList = userFeignClient.getUserInfoList(userIdList);
+        List<UserVo> userInfoList = userFeignClient.getUserInfoList(userIdList,Long.valueOf(tokenAuthSuccess.getUserId()));
         // 存入redis中
         redisTemplate.opsForValue().set(key, userInfoList, 2, TimeUnit.HOURS);
         log.info("获取粉丝用户列表------------->从MySQL中查询");
@@ -191,7 +192,7 @@ public class RelationService {
             return new MutualFollowResp("0", "没有互相关注的人哦~", null);
         }
         List<Long> userIdList = intersect.stream().map(Long::valueOf).collect(Collectors.toList());
-        List<UserVo> userInfoList = userFeignClient.getUserInfoList(userIdList);
+        List<UserVo> userInfoList = userFeignClient.getUserInfoList(userIdList,userId);
         List<FriendUser> friendUserList = userInfoList.stream().map(
                 userVo -> {
                     FriendUser friendUser = new FriendUser();

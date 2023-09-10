@@ -48,12 +48,13 @@ public class RelationController {
         if (tokenAuthSuccess == null || !tokenAuthSuccess.getIsSuccess()) {
             return new RelationResp("500", "请先登录哦~", null);
         }
-        return relationService.getRelatedUserList(userId);
+        return relationService.getRelatedUserList(userId,tokenAuthSuccess);
     }
 
 
     /**
      * 所有关注登录用户的粉丝列表
+     *
      * @param userId
      * @param tokenAuthSuccess
      * @return
@@ -63,24 +64,24 @@ public class RelationController {
         if (tokenAuthSuccess == null || !tokenAuthSuccess.getIsSuccess()) {
             return new RelationResp("500", "请先登录哦~", null);
         }
-        return relationService.getFollowerList(userId);
+        return relationService.getFollowerList(userId,tokenAuthSuccess);
     }
 
 
     /**
      * 互相关注的用户列表
+     *
      * @param userId
      * @param tokenAuthSuccess
      * @return
      */
     @GetMapping("/friend/list")
-    public MutualFollowResp getFriendUserList(@RequestParam("user_id") Long userId, @TokenAuthAnno TokenAuthSuccess tokenAuthSuccess){
+    public MutualFollowResp getFriendUserList(@RequestParam("user_id") Long userId, @TokenAuthAnno TokenAuthSuccess tokenAuthSuccess) {
         if (tokenAuthSuccess == null || !tokenAuthSuccess.getIsSuccess()) {
             return new MutualFollowResp("500", "请先登录哦~", null);
         }
         return relationService.getFriendUserList(userId);
     }
-
 
 
     /**
@@ -107,5 +108,19 @@ public class RelationController {
         return relationMapper.selectFollowerCount(userId);
     }
 
+
+    /**
+     * 内部接口,无需token调用
+     * 获取关注关系
+     *
+     * @param authorId
+     * @param userId
+     * @return
+     */
+    @GetMapping("/inner/follow/relationship")
+    public boolean getIsRelated(@RequestParam("authorId") Long authorId, @RequestParam("userId") Long userId) {
+        Integer isRelated = relationMapper.getIsRelated(authorId, userId);
+        return isRelated != 0;
+    }
 
 }

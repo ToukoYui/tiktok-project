@@ -98,8 +98,8 @@ public class UserController {
      * @return
      */
     @GetMapping("/inner/userinfolist")
-    public List<UserVo> getUserInfoList(@RequestParam("userIdList") List<Long> userIdList) {
-        return userService.getUserInfoList(userIdList);
+    public List<UserVo> getUserInfoList(@RequestParam("userIdList") List<Long> userIdList,@RequestParam("userId") Long userId) {
+        return userService.getUserInfoList(userIdList,userId);
     }
 
 
