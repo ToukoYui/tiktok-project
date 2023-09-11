@@ -71,51 +71,36 @@ public class RelationService {
                 // 未关注该用户,添加新的关注
                 relationMapper.insertRelate(Long.valueOf(userId), toUserId, 1);
                 // 执行lua脚本,保证原子性操作
-                Long r = stringRedisTemplate.execute(
-                        FOLLOW_SCRIPT,
-                        Collections.emptyList(),
-                        userId, toUserId.toString()
-                );
+                Long r = executeFollowScript(userId, toUserId.toString());
                 if (r.intValue() != 0) {
                     // 手动回滚
                     relationMapper.updateRelated(Long.valueOf(userId), toUserId, 0);
+                    followExceptionHandling(r, userId, toUserId.toString());
                     return new RelationResp("500", "服务器异常哦~", null);
                 }
-//                stringRedisTemplate.opsForSet().add(followUserIdKey, toUserId.toString());
-//                stringRedisTemplate.opsForSet().add(followerIdKey, userId);
             } else {
                 // 已关注,修改是否关注即可
                 if (actionType.equals("1")) {
                     relationMapper.updateRelated(Long.valueOf(userId), toUserId, 1);
                     // 将该用户id存入redis中
                     // set中值是不能重复的,如果添加相同元素,会添加失败
-                    Long r = stringRedisTemplate.execute(
-                            FOLLOW_SCRIPT,
-                            Collections.emptyList(),
-                            userId, toUserId.toString()
-                    );
+                    Long r = executeFollowScript(userId, toUserId.toString());
                     if (r.intValue() != 0) {
                         // 手动回滚
                         relationMapper.updateRelated(Long.valueOf(userId), toUserId, 0);
+                        followExceptionHandling(r, userId, toUserId.toString());
                         return new RelationResp("500", "服务器异常哦~", null);
                     }
-//                    stringRedisTemplate.opsForSet().add(followUserIdKey, toUserId.toString());
-//                    stringRedisTemplate.opsForSet().add(followerIdKey, userId);
                 } else {
                     relationMapper.updateRelated(Long.valueOf(userId), toUserId, 0);
                     // 从redis中删除
-                    Long r = stringRedisTemplate.execute(
-                            UNFOLLOW_SCRIPT,
-                            Collections.emptyList(),
-                            userId, toUserId.toString()
-                    );
+                    Long r = executeUnFollowScript(userId, toUserId.toString());
                     if (r.intValue() != 0) {
                         // 手动回滚
                         relationMapper.updateRelated(Long.valueOf(userId), toUserId, 1);
+                        UnfollowExceptionHandling(r, userId, toUserId.toString());
                         return new RelationResp("500", "服务器异常哦~", null);
                     }
-//                    stringRedisTemplate.opsForSet().remove(followUserIdKey, toUserId.toString());
-//                    stringRedisTemplate.opsForSet().remove(followerIdKey, userId);
                 }
             }
             // 关注后删除该用户缓存
@@ -130,6 +115,45 @@ public class RelationService {
 //        redisTemplate.delete("user:*");
         redisTemplate.delete("videolist:public");
         return new RelationResp("0", actionType.equals("1") ? "关注成功" : "取消关注成功", null);
+    }
+
+
+    // 关注lua
+    public Long executeFollowScript(String userId, String toUserId) {
+        Long r = stringRedisTemplate.execute(
+                FOLLOW_SCRIPT,
+                Collections.emptyList(),
+                userId, toUserId
+        );
+        return r;
+    }
+
+    // 取消关注lua
+    public Long executeUnFollowScript(String userId, String toUserId) {
+        Long r = stringRedisTemplate.execute(
+                UNFOLLOW_SCRIPT,
+                Collections.emptyList(),
+                userId, toUserId
+        );
+        return r;
+    }
+
+    // lua脚本执行异常处理
+    public void followExceptionHandling(Long r, String userId, String toUserId) {
+        if (r.intValue() == 2) {
+            // 第二个命令执行异常
+            // 回滚第一个命令
+            stringRedisTemplate.opsForSet().remove("followUserIds:" + userId, toUserId);
+        }
+    }
+
+    // lua脚本执行异常处理
+    public void UnfollowExceptionHandling(Long r, String userId, String toUserId) {
+        if (r.intValue() == 2) {
+            // 第二个命令执行异常
+            // 回滚第一个命令
+            stringRedisTemplate.opsForSet().add("followUserIds:" + userId, toUserId);
+        }
     }
 
 
@@ -151,7 +175,7 @@ public class RelationService {
 //        List<Integer> followUserIds = relationMapper.getFollowUserIds(userId);
 
         // 根据用户id列表获取关注用户详情列表
-        List<UserVo> userInfoList = userFeignClient.getUserInfoList(userIdList,Long.valueOf(tokenAuthSuccess.getUserId()));
+        List<UserVo> userInfoList = userFeignClient.getUserInfoList(userIdList, Long.valueOf(tokenAuthSuccess.getUserId()));
         // 存入redis中
         redisTemplate.opsForValue().set(key, userInfoList, 2, TimeUnit.HOURS);
         log.info("获取关注用户列表------------->从MySQL中查询");
@@ -175,7 +199,7 @@ public class RelationService {
                 Long::valueOf
         ).collect(Collectors.toList());
         // 根据用户id列表获取粉丝用户详情列表
-        List<UserVo> userInfoList = userFeignClient.getUserInfoList(userIdList,Long.valueOf(tokenAuthSuccess.getUserId()));
+        List<UserVo> userInfoList = userFeignClient.getUserInfoList(userIdList, Long.valueOf(tokenAuthSuccess.getUserId()));
         // 存入redis中
         redisTemplate.opsForValue().set(key, userInfoList, 2, TimeUnit.HOURS);
         log.info("获取粉丝用户列表------------->从MySQL中查询");
@@ -195,7 +219,7 @@ public class RelationService {
             return new MutualFollowResp("0", "没有互相关注的人哦~", null);
         }
         List<Long> userIdList = intersect.stream().map(Long::valueOf).collect(Collectors.toList());
-        List<UserVo> userInfoList = userFeignClient.getUserInfoList(userIdList,userId);
+        List<UserVo> userInfoList = userFeignClient.getUserInfoList(userIdList, userId);
         List<FriendUser> friendUserList = userInfoList.stream().map(
                 userVo -> {
                     FriendUser friendUser = new FriendUser();
