@@ -12,11 +12,11 @@
             <el-col :span="8">
                 <el-card style="width: 100%;color: #333">
                     <div style="padding-bottom: 10px; border-bottom: 1px solid #ccc">在线用户<span style="font-size: 12px">（点击聊天气泡开始聊天）</span></div>
-                    <div style="padding: 10px 0" v-for="username in users" :key="username">
-                        <span>{{ username }}</span>
-                        <i class="el-icon-chat-dot-round" style="margin-left: 10px; font-size: 16px; cursor: pointer"
-                           @click="chatUser = this.username"></i>
-                        <span style="font-size: 12px;color: limegreen; margin-left: 5px" v-if="this.username === this.chatUser">chatting...</span>
+                    <div style="padding: 10px 0" v-for="user in users" :key="user.username">
+                        <span>{{ user.username }}</span>
+                        <i class="el-icon-thumb" style="margin-left: 10px; font-size: 16px; cursor: pointer"
+                           @click="this.chatUser = user.username"></i>
+                        <span style="font-size: 12px;color: limegreen; margin-left: 5px" v-if="user.username === this.chatUser">chatting...</span>
                     </div>
                 </el-card>
             </el-col>
@@ -28,7 +28,7 @@
                     </div>
                     <div style="height: 350px; overflow:auto; border-top: 1px solid #ccc" v-html="content"></div>
                     <div style="height: 200px">
-                  <textarea v-model="text" style="height: 160px; width: 100%; padding: 20px; border: none; border-top: 1px solid #ccc;
+                  <textarea v-model="text" style="height: 160px; width: 750px; padding: 20px; border: none; border-top: 1px solid #ccc;
                    border-bottom: 1px solid #ccc; outline: none"></textarea>
                         <div style="text-align: right; padding-right: 10px">
                             <el-button type="primary" size="mini" @click="send" @keyup.enter="send">发送</el-button>
@@ -65,10 +65,6 @@
             this.init()
         },
         methods: {
-            setUser(){
-                console.log(this.username);
-                this.window.sessionStorage.setItem("user",this.username)
-            },
             send() {
                 if (!this.chatUser) {
                     this.$message({type: 'warning', message: "请选择聊天对象"})
@@ -122,7 +118,8 @@
                 this.content += html;
             },
             init() {
-                this.username = window.sessionStorage.getItem("user")
+                this.username = sessionStorage.getItem("user")
+                console.log(this.username)
                 let username = this.username;
                 let _this = this;
                 if (typeof (WebSocket) == "undefined") {
@@ -145,7 +142,7 @@
                         console.log("收到数据====" + msg.data)
                         let data = JSON.parse(msg.data)  // 对收到的json数据进行解析， 类似这样的： {"users": [{"username": "zhang"},{ "username": "admin"}]}
                         if (data.users) {  // 获取在线人员信息
-                            _this.users = data.users.filter(user => user.username !== username)  // 获取当前连接的所有用户信息，并且排除自身，自己不会出现在自己的聊天列表里
+                            _this.users = data.users.filter(user => user.username !== _this.username)  // 获取当前连接的所有用户信息，并且排除自身，自己不会出现在自己的聊天列表里
                         } else {
                             // 如果服务器端发送过来的json数据 不包含 users 这个key，那么发送过来的就是聊天文本json数据
                             //  // {"from": "zhang", "text": "hello"}

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>设置用户名</title>
 </head>
 <body>
 <div id="set_username" style="text-align: center">
@@ -19,10 +19,19 @@
     new Vue({
         el: '#set_username',
         data(){
+            return{
+                username:''
+            }
 
         },
         methods:{
-
+            setUser() {
+                sessionStorage.setItem("user",this.username)
+                var a = document.createElement('a')
+                a.setAttribute('href', "http://localhost:8026/page/chat.html")
+                document.body.appendChild(a)
+                a.click()
+            }
         }
     })
 </script>

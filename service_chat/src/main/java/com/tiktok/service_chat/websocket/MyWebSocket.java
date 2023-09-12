@@ -70,6 +70,7 @@ public class MyWebSocket {
             // {"username", "zhang", "username": "admin"}
             array.add(jsonObject);
         }
+        sendAllMessage(JSONUtil.toJsonStr(result));  // 后台发送消息给所有的客户端
         webSocketSet.add(this);     //加入set中
     }
 
@@ -78,8 +79,6 @@ public class MyWebSocket {
      */
     @OnClose
     public void onClose() {
-        ChatUser chatUser = new ChatUser();
-        chatUser.setFistUsername(username);
         webSocketSet.remove(this);  //从set中删除
 
     }
@@ -138,6 +137,19 @@ public class MyWebSocket {
         try {
             log.info("服务端给客户端[{}]发送消息{}", toSession.getId(), message);
             toSession.getAsyncRemote().sendText(message);
+        } catch (Exception e) {
+            log.error("服务端发送消息给客户端失败", e);
+        }
+    }
+    /**
+     * 服务端发送消息给所有客户端
+     */
+    private void sendAllMessage(String message) {
+        try {
+            for (Session session : sessionMap.values()) {
+                log.info("服务端给客户端[{}]发送消息{}", session.getId(), message);
+                session.getBasicRemote().sendText(message);
+            }
         } catch (Exception e) {
             log.error("服务端发送消息给客户端失败", e);
         }
