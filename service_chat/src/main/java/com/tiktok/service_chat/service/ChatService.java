@@ -7,10 +7,10 @@ import com.tiktok.service_chat.mapper.ChatMessageMapper;
 import com.tiktok.service_chat.mapper.ChatUserLinkMapper;
 import com.tiktok.service_chat.service.chat_user.ChatUser;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 @Service
@@ -33,9 +33,7 @@ public class ChatService {
     public void saveMessage(ChatMessage chatMsg) {
         chatMessageMapper.save(chatMsg);
     }
-
-    public ChatMessageResp list(ChatUser chatUser) {
-        //
+    public List<ChatMessage> list(ChatUser chatUser) {
         String sendOrRece = chatUser.getFistUsername();
         String receOrSend = chatUser.getSecondUsername();
         Long firstLindId = chatUserLinkMapper.getOneRecord(sendOrRece, receOrSend);
@@ -73,6 +71,6 @@ public class ChatService {
                 }
             }
         }
-        return new ChatMessageResp("0","消息列表展示成功",messageList);
+        return messageList;
     }
 }
