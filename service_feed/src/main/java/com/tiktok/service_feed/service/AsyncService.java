@@ -2,6 +2,7 @@ package com.tiktok.service_feed.service;
 
 import com.tiktok.feign_util.utils.CommentFeignClient;
 import com.tiktok.feign_util.utils.LikeFeignClient;
+import com.tiktok.feign_util.utils.RelationFeignClient;
 import com.tiktok.feign_util.utils.UserFeignClient;
 import com.tiktok.model.vo.user.UserVo;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +24,8 @@ public class AsyncService {
     private UserFeignClient userFeignClient;
     @Autowired
     private LikeFeignClient likeFeignClient;
+    @Autowired
+    private RelationFeignClient relationFeignClient;
 
     @Resource(name = "asyncServiceExecutor")
     private ThreadPoolTaskExecutor threadExecutor;
@@ -30,10 +33,10 @@ public class AsyncService {
     private CountDownLatch countDownLatch; // 阻塞计数器
 
 
-    public Boolean getIsLikeByVideoIdAsync(CountDownLatch countDownLatch, Long userId,Long videoId) {
+    public Boolean getIsLikeByVideoIdAsync(CountDownLatch countDownLatch, Long userId, Long videoId) {
         try {
             Future<Boolean> submit = threadExecutor.submit(() -> {
-                Boolean isLike = likeFeignClient.getIsLike(userId,videoId);
+                Boolean isLike = likeFeignClient.getIsLike(userId, videoId);
                 log.info(Thread.currentThread().getName() + "----------->获取是否点赞");
                 return isLike;
             });
@@ -45,6 +48,23 @@ public class AsyncService {
         }
         return false;
     }
+
+    public Boolean getIsFollowedByUserIdAsync(CountDownLatch countDownLatch, Long userId, Long authorId) {
+        try {
+            Future<Boolean> submit = threadExecutor.submit(() -> {
+                Boolean isLike = relationFeignClient.getIsRelated(authorId, userId);
+                log.info(Thread.currentThread().getName() + "----------->获取是否点赞");
+                return isLike;
+            });
+            return submit.get();
+        } catch (Exception e) {
+            log.error("查询用户是否已关注该用户失败---------->" + e.getMessage());
+        } finally {
+            countDownLatch.countDown(); // 计数器减1
+        }
+        return false;
+    }
+
 
     public UserVo getAuthorInfoAsync(CountDownLatch countDownLatch, Long authorId) {
         try {
@@ -82,7 +102,7 @@ public class AsyncService {
         try {
             Future<Integer> submit = threadExecutor.submit(() -> {
                 Integer commentCount = commentFeignClient.getCommnetNumFromCommentModule(videoId);
-                log.info(Thread.currentThread().getName() + "----------->获取评论数量:"+ commentCount);
+                log.info(Thread.currentThread().getName() + "----------->获取评论数量:" + commentCount);
                 return commentCount;
             });
             return submit.get();
@@ -96,16 +116,18 @@ public class AsyncService {
 
     public Integer getLikeCountByUserIdAsync(CountDownLatch countDownLatch, Long userId) {
         try {
-            Future<Integer> submit = threadExecutor.submit(()->{
+            Future<Integer> submit = threadExecutor.submit(() -> {
                 Integer likeCount = likeFeignClient.getLikeCountByUserId(userId);
                 return likeCount;
             });
             submit.get();
         } catch (Exception e) {
             log.error("根据用户id查询用户点赞数失败----------->" + e.getMessage());
-        }finally {
+        } finally {
             countDownLatch.countDown();
         }
         return 0;
     }
+
+
 }
