@@ -41,7 +41,7 @@
     </div>
 </div>
 </body>
-<script src="../plugins/vue/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.7.14"></script>
 <!-- 引入组件库 -->
 <script src="../plugins/element-ui/index.js"></script>
 <!-- 引入axios -->
@@ -68,6 +68,7 @@
         },
         methods: {
             getMessage(username){
+                this.content = ''
                 this.chatUser = username
                 let that = this
                 axios({
@@ -105,6 +106,10 @@
                 });
             },
             send() {
+                if(!this.username){
+                    this.$message({type: 'warning', message: "请先设置用户名"})
+                    return;
+                }
                 if (!this.chatUser) {
                     this.$message({type: 'warning', message: "请选择聊天对象"})
                     return;
@@ -128,7 +133,6 @@
                 }
             },
             createContent(remoteUser, nowUser, text) {// 这个方法是用来将 json的聊天消息数据转换成 html的。
-                debugger
                 let html
                 // 当前用户消息
                 if (nowUser) { // nowUser 表示是否显示当前用户发送的聊天消息，绿色气泡
@@ -159,6 +163,10 @@
             },
             init() {
                 this.username = sessionStorage.getItem("user")
+                if(!this.username){
+                    this.$message({type: 'warning', message: "请先设置用户名"})
+                    return;
+                }
                 console.log(this.username)
                 let username = this.username;
                 let _this = this;
