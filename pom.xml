@@ -9,6 +9,7 @@
         <module>service_feed</module>
         <module>service_favorite</module>
         <module>service_relation</module>
+        <module>service_chat</module>
         <module>model</module>
         <module>service_comment</module>
     </modules>

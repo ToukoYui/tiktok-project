@@ -1,0 +1,16 @@
+.tip {
+    color: white;
+    text-align: center;
+    border-radius: 10px;
+    font-family: sans-serif;
+    padding: 10px;
+    width:auto;
+    display:inline-block !important;
+    display:inline;
+}
+.right {
+    background-color: deepskyblue;
+}
+.left {
+    background-color: forestgreen;
+}

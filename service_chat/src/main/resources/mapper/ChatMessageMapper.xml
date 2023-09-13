@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiktok.service_chat.mapper.ChatMessageMapper">
+
+    <resultMap id="ChatMsg" type="com.tiktok.model.entity.chat.ChatMessage">
+        <id column="id" property="id"/>
+        <result column="from_user" property="fromUser"/>
+        <result column="to_user" property="toUser"/>
+        <result column="content" property="content"/>
+        <result column="send_time" property="sendTime"/>
+    </resultMap>
+    <insert id="save" parameterType="com.tiktok.model.entity.chat.ChatMessage">
+        insert into chat_message (from_user,to_user,content,send_time)
+        values (#{fromUser},#{toUser},#{content},#{sendTime})
+    </insert>
+    <select id="selectSend" resultMap="ChatMsg"
+            parameterType="java.lang.String">
+        select * from chat_message where from_user = #{fromUser} and to_user = #{toUser}
+    </select>
+</mapper>

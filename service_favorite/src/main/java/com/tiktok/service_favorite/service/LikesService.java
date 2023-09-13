@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -25,10 +26,10 @@ public class LikesService {
 
     @Autowired
     private VideoFeignClient videoFeignClient;
-
+    @Transactional
     public FavoriteResp liked(Long videoId, String actionType, TokenAuthSuccess authSuccess) {
+        String userId = authSuccess.getUserId();
         try {
-            String userId = authSuccess.getUserId();
             //查询用户是否点赞过该视频
             Integer count = likesMapper.selectIsLiked(Long.valueOf(userId), videoId);
             if (count == 0) {
@@ -42,13 +43,13 @@ public class LikesService {
                     likesMapper.updateFavorite(videoId, 0, Long.valueOf(userId));
                 }
             }
-            // 点赞操作后删除该用户缓存
-            redisTemplate.delete("user:" + userId);
-            redisTemplate.delete("favoriteVideo:" + userId);
         } catch (Exception e) {
             e.printStackTrace();
             return new FavoriteResp("500", "服务器出错，点赞失败哦~", null);
         }
+        // 点赞操作后删除该用户缓存
+        redisTemplate.delete("user:" + userId);
+        redisTemplate.delete("favoriteVideo:" + userId);
         redisTemplate.delete("videolist:public");
         return new FavoriteResp("0", "点赞成功", null);
     }

@@ -1,0 +1,65 @@
+server:
+  port: 8026
+#  servlet:
+#    context-path: /douyin #request prefix
+  max-http-header-size: 20480
+
+spring:
+  application:
+    name: service-chat
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://8.134.208.93:3306/chat_test?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
+    #    type: com.alibaba.druid.pool.DruidDataSource
+    username: ENC(5Ev24JNagGONP1Ca9+xZWg==)
+    password: ENC(lQ3mg76A7j6WOm/j8zQ5dyfaDa06L4FX)
+
+  redis:
+    host: 8.134.208.93
+    port: 6379
+    password: ENC(lQ3mg76A7j6WOm/j8zQ5dyfaDa06L4FX)
+    database: 0
+
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+# 令牌桶限流配置
+tokenbucket:
+  capacity: 100
+  rate: 1
+
+
+jasypt:
+  encryptor:
+    password: ${DouyinSecretKey}  #解密密钥，通过环境变量读取
+    algorithm: PBEWithMD5AndDES
+    iv-generator-classname: org.jasypt.iv.NoIvGenerator
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 10000
+        readTimeout: 10000
+        loggerLevel: FULL
+
+opentracing:
+  jaeger:
+    enabled: true
+    http-sender:
+      url: http://8.134.208.93:14268/api/traces
+#    udp-sender:
+#      host: 8.134.208.93
+#      port: 6831

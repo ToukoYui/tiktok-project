@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>设置用户名</title>
+</head>
+<body>
+<div id="set_username" style="text-align: center">
+    <input style="" type="text" v-model="username"  placeholder="请输入用户名"/>
+    <button style="background-color: #4CAF50; /* Green */
+                    border: none;
+                    color: blue;
+                    text-align: center;
+                    font-size: 16px;" @click="setUser">确认</button>
+</div>
+</body>
+<script src="../plugins/vue/vue.js"></script>
+<script type="text/javascript">
+    new Vue({
+        el: '#set_username',
+        data(){
+            return{
+                username:''
+            }
+
+        },
+        methods:{
+            setUser() {
+                sessionStorage.setItem("user",this.username)
+                var a = document.createElement('a')
+                a.setAttribute('href', "http://localhost:8026/page/chat.html")
+                document.body.appendChild(a)
+                a.click()
+            }
+        }
+    })
+</script>
+</html>
