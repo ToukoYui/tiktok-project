@@ -7,5 +7,5 @@ import java.util.List;
 @Mapper
 public interface ChatMessageMapper {
     void save(ChatMessage chatMsg);
-    List<ChatMessage> selectSend(Long linkId);
+    List<ChatMessage> selectSend(String fromUser,String toUser);
 }

@@ -42,11 +42,11 @@ public class MyWebSocket {
     public static final Map<String, Session> sessionMap = new ConcurrentHashMap<>();
     //与某个客户端的连接会话，需要通过它来给客户端发送数据
     private Session session;
-    //用户名
     private String username;
     //获取全局容器
+    //获取全局容器
+    private ApplicationContext applicationContext;
     //聊天逻辑层service
-    @Autowired
     private ChatService chatService;
 
 
@@ -56,10 +56,14 @@ public class MyWebSocket {
      * 连接建立成功调用的方法，初始化昵称、session
      */
     @OnOpen
-    public void onOpen(Session session, @PathParam("username") String username) {
+    public void onOpen(Session session, @PathParam("username") String username,EndpointConfig config) {
+        HttpSession httpSession= (HttpSession) config.getUserProperties().get(HttpSession.class.getName());
+        WebApplicationContext applicationContext = WebApplicationContextUtils.getRequiredWebApplicationContext(httpSession.getServletContext());
         sessionMap.put(username, session);
+        this.applicationContext = applicationContext;
         this.session = session;
         this.username = username;
+        this.chatService = (ChatService) applicationContext.getBean("chatService");
         log.info("有新用户加入，username={}, 当前在线人数为：{}", username, sessionMap.size());
         JSONObject result = new JSONObject();
         JSONArray array = new JSONArray();
@@ -97,7 +101,6 @@ public class MyWebSocket {
         String toUser = obj.getStr("to"); // to表示发送给哪个用户，比如 admin
         String content = obj.getStr("content");
         Session toSession = sessionMap.get(toUser); // 根据 to用户名来获取 session，再通过session发送消息文本
-        ChatMessage chatMsg = new ChatMessage();
         if (toSession != null) {
             // 服务器端 再把消息组装一下，组装后的消息包含发送人和发送的文本内容
             // {"from": "zhang", "text": "hello"}
@@ -109,17 +112,19 @@ public class MyWebSocket {
         } else {
             log.info("发送失败，未找到用户username={}的session", toUser);
         }
-        //对chatMsg进行装箱
-        ChatMessage chatMessage = new ChatMessage();
-        chatMessage.setFromUser(username);
-        chatMessage.setToUser(toUser);
-        chatMessage.setSendTime(new Date());
-        chatMsg.setIsLatest(true);
-        //查询聊天两者的联系id
-        Long linkId = chatService.selectAssociation(username, chatMsg.getToUser());
-        chatMsg.setLinkId(linkId);
-        //保存聊天记录信息
-        chatService.saveMessage(chatMsg);
+        try {
+            //对chatMsg进行装箱
+            ChatMessage chatMessage = new ChatMessage();
+            chatMessage.setFromUser(username);
+            chatMessage.setToUser(toUser);
+            chatMessage.setSendTime(new Date());
+            chatMessage.setContent(content);
+            //保存聊天记录信息
+            chatService.saveMessage(chatMessage);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
     }
 
 

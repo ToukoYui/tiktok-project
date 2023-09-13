@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Chat</title>
     <link rel="stylesheet" type="text/css" href="chat.css">
+    <link rel="stylesheet" type="text/css" href="../plugins/element-ui/index.css">
 </head>
 <body>
 <div id="chat">
@@ -15,8 +16,8 @@
                     <div style="padding: 10px 0" v-for="user in users" :key="user.username">
                         <span>{{ user.username }}</span>
                         <i class="el-icon-thumb" style="margin-left: 10px; font-size: 16px; cursor: pointer"
-                           @click="this.chatUser = user.username"></i>
-                        <span style="font-size: 12px;color: limegreen; margin-left: 5px" v-if="user.username === this.chatUser">chatting...</span>
+                           @click="getMessage(user.username)"></i>
+                        <span style="font-size: 12px;color: limegreen; margin-left: 5px" v-if="user.username === chatUser">chatting...</span>
                     </div>
                 </el-card>
             </el-col>
@@ -24,7 +25,7 @@
                 <div style="width: 800px; margin: 0 auto; background-color: white;
                           border-radius: 5px; box-shadow: 0 0 10px #ccc">
                     <div style="text-align: center; line-height: 50px;">
-                        Web聊天室（{{ chatUser }}）
+                        Chat（{{ chatUser }}）
                     </div>
                     <div style="height: 350px; overflow:auto; border-top: 1px solid #ccc" v-html="content"></div>
                     <div style="height: 200px">
@@ -57,6 +58,7 @@
                 chatUser: '',
                 text: "",
                 messages: [],
+                messageList:[],
                 content: ''
 
             }
@@ -65,6 +67,43 @@
             this.init()
         },
         methods: {
+            getMessage(username){
+                this.chatUser = username
+                let that = this
+                axios({
+                    url: 'http://localhost:8026/chat/list',
+                    method: 'post',
+                    data: {
+                        fistUsername: this.username,
+                        secondUsername: username
+                    }
+                }).then(function (res) {
+                    let code = res.data.status_code
+                    if(code === "0"){
+                        that.messageList = res.data.message_list
+                        let messageList = that.messageList
+                        console.log(messageList)
+                        for (var i = 0;i < messageList.length;i++){
+                            let fromUser = messageList[i].fromUser
+                            let toUser = messageList[i].toUser
+                            let content = messageList[i].content
+                            console.log(that.username)
+                            debugger
+                            if(fromUser === that.username){
+                                debugger
+                                that.createContent(null,fromUser,content)
+                            }else {
+                                that.createContent(toUser,null,content)
+                            }
+                        }
+                    }else {
+                        throw res.status_msg
+                    }
+
+                }).catch(function (err) {
+                    console.log(err)
+                });
+            },
             send() {
                 if (!this.chatUser) {
                     this.$message({type: 'warning', message: "请选择聊天对象"})
@@ -79,16 +118,17 @@
                         console.log("您的浏览器支持WebSocket");
                         // 组装待发送的消息 json
                         // {"from": "zhang", "to": "admin", "text": "聊天文本"}
-                        let message = {fromUser: this.username, toUser: this.chatUser, content: this.text}
+                        let message = {fromUser: this.username, to: this.chatUser, content: this.text}
                         socket.send(JSON.stringify(message));  // 将组装好的json发送给服务端，由服务端进行转发
                         this.messages.push({username: this.username, content: this.text})
                         // 构建消息内容，本人消息
-                        this.createContent(null,null,this.this.username, this.text)
+                        this.createContent(null,this.username, this.text)
                         this.text = '';
                     }
                 }
             },
-            createContent(remoteUser,userFace, nowUser, text) {  // 这个方法是用来将 json的聊天消息数据转换成 html的。
+            createContent(remoteUser, nowUser, text) {// 这个方法是用来将 json的聊天消息数据转换成 html的。
+                debugger
                 let html
                 // 当前用户消息
                 if (nowUser) { // nowUser 表示是否显示当前用户发送的聊天消息，绿色气泡
@@ -98,7 +138,7 @@
                         "  </div>\n" +
                         "  <div class=\"el-col el-col-2\">\n" +
                         "  <span class=\"el-avatar el-avatar--circle\" style=\"height: 40px; width: 40px; line-height: 40px;\">\n" +
-                        "    <img src="+this.user.userFace+" style=\"object-fit: cover;\">\n" +
+                        "    <img src="+ "../img/op.jpg" +" style=\"object-fit: cover;\">\n" +
                         "  </span>\n" +
                         "  </div>\n" +
                         "</div>";
@@ -106,7 +146,7 @@
                     html = "<div class=\"el-row\" style=\"padding: 5px 0\">\n" +
                         "  <div class=\"el-col el-col-2\" style=\"text-align: right\">\n" +
                         "  <span class=\"el-avatar el-avatar--circle\" style=\"height: 40px; width: 40px; line-height: 40px;\">\n" +
-                        "    <img src="+userFace+" style=\"object-fit: cover;\">\n" +
+                        "    <img src="+"../img/op.jpg"+" style=\"object-fit: cover;\">\n" +
                         "  </span>\n" +
                         "  </div>\n" +
                         "  <div class=\"el-col el-col-22\" style=\"text-align: left; padding-left: 10px\">\n" +
@@ -149,7 +189,7 @@
                             if (data.from === _this.chatUser) {
                                 _this.messages.push(data)
                                 // 构建消息内容
-                                _this.createContent(data.from,data.userFace, null, data.text)
+                                _this.createContent(data.from, null, data.content)
                             }
                         }
                     };
