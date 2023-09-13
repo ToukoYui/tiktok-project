@@ -66,7 +66,7 @@ public class VideoService {
             "rmvb", "swf", "asf", "m2ts", "f4v"
     };
 
-    public List<VideoVo> getVideoList(String lastTime,TokenAuthSuccess tokenAuthSuccess) {
+    public List<VideoVo> getVideoList(String lastTime, TokenAuthSuccess tokenAuthSuccess) {
         System.out.println("lastTime = " + lastTime);
         // 查询redis中是否有缓存
         // 这里直接public就好了,因为退出应用不代表用户就退出
@@ -80,10 +80,10 @@ public class VideoService {
         }
         int cul;
         boolean flag;
-        if(tokenAuthSuccess != null && tokenAuthSuccess.getIsSuccess()){
+        if (tokenAuthSuccess != null && tokenAuthSuccess.getIsSuccess()) {
             flag = true;
-            cul = 4;
-        }else {
+            cul = 5;
+        } else {
             flag = false;
             cul = 3;
         }
@@ -99,12 +99,19 @@ public class VideoService {
                 // 异步获取
                 // thread1.用户是否已点赞该视频 如果用户登录了才获取
                 Boolean isLike = null;
-                if(flag){
+                if (flag) {
                     isLike = asyncService.getIsLikeByVideoIdAsync(countDownLatch, Long.valueOf(tokenAuthSuccess.getUserId()), video.getId());
 
                 }
                 // thread2.获取投稿视频的作者信息
+                // 如果是登录用户,需要返回与该用户的关注关系
+                Boolean isFollowed = false;
+                if (flag) {
+                    // 用户是否已关注了该作者 如果用户登录了才获取
+                    isFollowed = asyncService.getIsFollowedByUserIdAsync(countDownLatch, Long.valueOf(tokenAuthSuccess.getUserId()), video.getUserId());
+                }
                 UserVo authorInfo = asyncService.getAuthorInfoAsync(countDownLatch, video.getUserId());
+
                 // thread3.获取点赞数
                 Integer likeCount = asyncService.getLikeCountAsync(countDownLatch, video.getId());
                 // thread4.获取评论数
@@ -116,6 +123,7 @@ public class VideoService {
                     log.error(e.getMessage());
                 }
                 videoVo.setIsFavorite(isLike);
+                authorInfo.setIsFollow(isFollowed);
                 videoVo.setAuthor(authorInfo);
                 videoVo.setFavoriteCount(likeCount);
                 videoVo.setCommentCount(commentCount);
@@ -214,7 +222,7 @@ public class VideoService {
         }
         CountDownLatch countDownLatch = new CountDownLatch(2);
         // 获取当前登录用户的信息
-        UserVo userInfo = asyncService.getAuthorInfoAsync(countDownLatch,Long.valueOf(tokenAuthSuccess.getUserId()));
+        UserVo userInfo = asyncService.getAuthorInfoAsync(countDownLatch, Long.valueOf(tokenAuthSuccess.getUserId()));
         //获取当前用户的喜欢视频数
         Integer likeCountByUserId = asyncService.getLikeCountByUserIdAsync(countDownLatch, Long.valueOf(userId));
         // 根据当前用户id查找已发布的视频
@@ -231,11 +239,11 @@ public class VideoService {
         userInfo.setFavoriteCount(likeCountByUserId);
         List<VideoVo> videoVoList = new ArrayList<>();
         // 将集合中的video数据类型转换为videoVo类型
-        for(Video video : videos){
+        for (Video video : videos) {
             countDownLatch = new CountDownLatch(3);
-            Integer likeCount = asyncService.getLikeCountAsync(countDownLatch,video.getId());
-            Integer commentCount = asyncService.getCommnetNum(countDownLatch,video.getId());
-            Boolean isLike = asyncService.getIsLikeByVideoIdAsync(countDownLatch,Long.valueOf(userId),video.getId());
+            Integer likeCount = asyncService.getLikeCountAsync(countDownLatch, video.getId());
+            Integer commentCount = asyncService.getCommnetNum(countDownLatch, video.getId());
+            Boolean isLike = asyncService.getIsLikeByVideoIdAsync(countDownLatch, Long.valueOf(userId), video.getId());
             //当所有线程执行完毕后才继续执行后续代码
             try {
                 countDownLatch.await();
@@ -260,15 +268,15 @@ public class VideoService {
     }
 
     // 根据视频id列表获取视频详情列表
-    public List<VideoVo> getVideoInfoList(List<Long> videoIdList){
-        if (CollectionUtils.isEmpty(videoIdList)){
+    public List<VideoVo> getVideoInfoList(List<Long> videoIdList) {
+        if (CollectionUtils.isEmpty(videoIdList)) {
             return new ArrayList<VideoVo>();
         }
         List<Video> videoList = videoMapper.getVideoListByIdList(videoIdList);
         List<VideoVo> videoVoList = videoList.stream().map(
                 video -> {
                     VideoVo videoVo = new VideoVo();
-                    BeanUtils.copyProperties(video,videoVo);
+                    BeanUtils.copyProperties(video, videoVo);
                     videoVo.setIsFavorite(true);
                     // todo 前端不支持，设为null
                     videoVo.setAuthor(null);

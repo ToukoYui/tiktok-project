@@ -1,0 +1,64 @@
+server:
+  port: 8022
+  servlet:
+    context-path: /douyin #request prefix
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 20MB
+
+spring:
+  application:
+    name: service-favorite
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 20MB
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/test?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
+#    type: com.alibaba.druid.pool.DruidDataSource
+    username: root
+    password: 123
+
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    database: 0
+
+
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 2000
+        readTimeout: 2000
+        loggerLevel: FULL
+
+mybatis:
+#  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+# 令牌桶限流配置
+tokenbucket:
+  capacity: 100
+  rate: 1
+
+tencentyun:
+  oss:
+    cosRegion: ap-guangzhou #地域名
+    bucket: douyin-1313537069 # 存储桶名
+    secretId: ENC(Z3G9H2hwpdQMR1XbLcQxRr4T0wT8tVfBcUEhhP3PbBU41ODHLXu2hJ/y/95nKkrZ)
+    secretKey: ENC(NAVTBxcwmDTcgKidk60YDWNh3t/OiaiuHJLVEshs+R8cFRsy1wFeRwBQ6LVEZ4rZ)
+
