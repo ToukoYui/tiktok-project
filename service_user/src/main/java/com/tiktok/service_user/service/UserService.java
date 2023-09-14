@@ -9,6 +9,7 @@ import com.tiktok.feign_util.utils.VideoFeignClient;
 import com.tiktok.model.vo.user.UserVo;
 import com.tiktok.service_user.mapper.UserMapper;
 import com.tiktok.model.entity.user.User;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -20,9 +21,11 @@ import com.tiktok.model.vo.user.UserRegisterResp;
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class UserService {
     @Autowired
@@ -30,6 +33,11 @@ public class UserService {
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private AsyncService asyncService;
+
+    private CountDownLatch countDownLatch; // 阻塞计数器
 
     @Autowired
     private VideoFeignClient videoFeignClient;
@@ -130,6 +138,8 @@ public class UserService {
         // 先去redis中查询,查询不到再去数据库,并存入redis中
         String jsonObjectStr = redisTemplate.opsForValue().get(key);
         if (jsonObjectStr == null) {
+            // 4个服务异步获取
+            int cul = 4;
             // 如果获取不到则去数据库查询,并缓存到redis中
             String id = String.valueOf(userId);
             // 对id进行非空判断
@@ -140,24 +150,42 @@ public class UserService {
                     // 返回一个空对象
                     return new UserVo();
                 }
-                // 存储到redis中
-                UserVo userVo = BeanUtil.copyProperties(user, UserVo.class);
-                // 获取当前用户关注总数
-                Integer followUserCount = relationFeignClient.getFollowUserCount(userVo.getId());
-                userVo.setFollowCount(followUserCount);
-                // 获取当前用户的粉丝总数
-                Integer followerCount = relationFeignClient.getFollowerCount(userVo.getId());
-                userVo.setFollowerCount(followerCount);
-                // 获取发布视频的数量
-                Integer videoNum = videoFeignClient.getVideoNumByUserId(userId);
-                // 获取喜欢视频的数量
-                Integer likedVideoNum = likeFeignClient.getLikeCountByUserId(userId);
-                userVo.setWorkCount(videoNum);
-                userVo.setFavoriteCount(likedVideoNum);
-                // 设置关注情况,默认是false
-                userVo.setIsFollow(false);
-                jsonObjectStr = JSONObject.toJSONString(userVo);
-                redisTemplate.opsForValue().set(key, jsonObjectStr, 2, TimeUnit.HOURS);
+                log.info("获取用户信息，从MYSQL中获取------------->" + user.toString());
+
+                try {
+                    countDownLatch = new CountDownLatch(cul);
+                    UserVo userVo = BeanUtil.copyProperties(user, UserVo.class);
+                    // 异步获取各种信息
+                    // thread1.获取当前用户关注总数
+                    Integer followUserCountAsync = asyncService.getFollowUserCountAsync(countDownLatch, userId);
+
+                    // thread2.获取当前用户的粉丝总数
+                    Integer followerCountAsync = asyncService.getFollowerCountAsync(countDownLatch, userId);
+
+                    // thread3.获取发布视频的数量
+                    Integer videoNumByUserIdAsync = asyncService.getVideoNumByUserIdAsync(countDownLatch, userId);
+
+                    // thread4.获取喜欢视频的数量
+                    Integer likeCountByUserIdAsync = asyncService.getLikeCountByUserIdAsync(countDownLatch, userId);
+
+                    //当所有线程执行完毕后才继续执行后续代码
+                    try {
+                        countDownLatch.await();
+                    } catch (InterruptedException e) {
+                        log.error(e.getMessage());
+                    }
+                    userVo.setFollowCount(followUserCountAsync);
+                    userVo.setFollowerCount(followerCountAsync);
+                    userVo.setWorkCount(videoNumByUserIdAsync);
+                    userVo.setFavoriteCount(likeCountByUserIdAsync);
+                    // 设置关注情况,默认是false
+                    userVo.setIsFollow(false);
+                    jsonObjectStr = JSONObject.toJSONString(userVo);
+                    redisTemplate.opsForValue().set(key, jsonObjectStr, 2, TimeUnit.HOURS);
+                } catch (Exception e) {
+                    log.error("发生异常,无法获取用户信息------------->" + e.getMessage());
+                    return null;
+                }
             }
         }
         // 转换为对象
@@ -165,9 +193,10 @@ public class UserService {
     }
 
 
+
     /**
      * 根据用户id列表获取用户信息列表
-     *
+     * 适用于获取关注列表和粉丝列表
      * @param userIdList
      * @return
      */
@@ -175,31 +204,66 @@ public class UserService {
         if (CollectionUtils.isEmpty(userIdList)) {
             return new ArrayList<UserVo>();
         }
-        List<User> userList = userMapper.getUserInfoListByIdList(userIdList);
-        List<UserVo> userVoList = userList.stream().map(
-                user -> {
-                    UserVo userVo = new UserVo();
-                    BeanUtil.copyProperties(user, userVo);
-                    // 获取当前用户关注总数
-                    Integer followUserCount = relationFeignClient.getFollowUserCount(userVo.getId());
-                    userVo.setFollowCount(followUserCount);
-                    // 获取当前用户的粉丝总数
-                    Integer followerCount = relationFeignClient.getFollowerCount(userVo.getId());
-                    userVo.setFollowerCount(followerCount);
-                    // 获取发布视频的数量
-                    Integer videoNum = videoFeignClient.getVideoNumByUserId(userVo.getId());
-                    // 获取喜欢视频的数量
-                    Integer likedVideoNum = likeFeignClient.getLikeCountByUserId(userVo.getId());
-                    userVo.setWorkCount(videoNum);
-                    userVo.setFavoriteCount(likedVideoNum);
-                    // 获取关注关系
-                    boolean isRelated = relationFeignClient.getIsRelated(userVo.getId(), userId);
-                    userVo.setIsFollow(isRelated);
-                    return userVo;
-                }
-        ).collect(Collectors.toList());
-        return userVoList;
-    }
+        // 从数据库中获取
+        // 最多5个服务异步获取
+        int cul;
+        boolean flag;
+        if (userId != null) {
+            flag = true;
+            cul = 5;
+        } else {
+            flag = false;
+            cul = 4;
+        }
+        try {
+            List<User> userList = userMapper.getUserInfoListByIdList(userIdList);
+            List<UserVo> userVoList = userList.stream().map(
+                    user -> {
+                        // 开启线程池
+                        countDownLatch = new CountDownLatch(cul);
 
+                        UserVo userVo = new UserVo();
+                        BeanUtil.copyProperties(user, userVo);
+
+                        // 异步获取各种信息
+                        // thread1.获取当前用户关注总数
+                        Integer followUserCountAsync = asyncService.getFollowUserCountAsync(countDownLatch, userId);
+
+                        // thread2.获取当前用户的粉丝总数
+                        Integer followerCountAsync = asyncService.getFollowerCountAsync(countDownLatch, userId);
+
+                        // thread3.获取发布视频的数量
+                        Integer videoNumByUserIdAsync = asyncService.getVideoNumByUserIdAsync(countDownLatch, userId);
+
+                        // thread4.获取喜欢视频的数量
+                        Integer likeCountByUserIdAsync = asyncService.getLikeCountByUserIdAsync(countDownLatch, userId);
+
+                        // thread5.获取关注关系
+                        Boolean isRelatedAsync = false;
+                        if(flag){
+                            // 登录用户才能获取关注关系
+                            isRelatedAsync = asyncService.getIsRelatedAsync(countDownLatch, userVo.getId(), userId);
+                        }
+
+                        //当所有线程执行完毕后才继续执行后续代码
+                        try {
+                            countDownLatch.await();
+                        } catch (InterruptedException e) {
+                            log.error(e.getMessage());
+                        }
+                        userVo.setFollowCount(followUserCountAsync);
+                        userVo.setFollowerCount(followerCountAsync);
+                        userVo.setWorkCount(videoNumByUserIdAsync);
+                        userVo.setFavoriteCount(likeCountByUserIdAsync);
+                        userVo.setIsFollow(isRelatedAsync);
+                        return userVo;
+                    }
+            ).collect(Collectors.toList());
+            return userVoList;
+        } catch (Exception e) {
+            log.error("发生异常,无法获取用户信息------------->" + e.getMessage());
+            return null;
+        }
+    }
 
 }

@@ -19,4 +19,5 @@ public class ChatController {
         List<ChatMessage> messageList = chatService.list(chatUser);
         return new ChatMessageResp("0","消息列表展示成功",messageList);
     }
+
 }
