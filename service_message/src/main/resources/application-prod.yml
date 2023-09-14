@@ -1,5 +1,5 @@
 server:
-  port: 8027
+  port: 8026
   max-http-header-size: 20480
   servlet:
     context-path: /douyin #request prefix
@@ -25,7 +25,7 @@ spring:
     host: 8.134.208.93
     port: 6379
     password: ENC(lQ3mg76A7j6WOm/j8zQ5dyfaDa06L4FX)
-    database: 0
+    database: 6
 
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss

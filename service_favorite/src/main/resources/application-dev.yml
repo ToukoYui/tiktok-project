@@ -1,10 +1,8 @@
 server:
-  port: 8022
+  port: 8024
+  max-http-header-size: 20480
   servlet:
     context-path: /douyin #request prefix
-    multipart:
-      max-file-size: 10MB
-      max-request-size: 20MB
 
 spring:
   application:
@@ -15,18 +13,19 @@ spring:
       max-file-size: 10MB
       max-request-size: 20MB
 
+
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/test?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
-#    type: com.alibaba.druid.pool.DruidDataSource
-    username: root
-    password: 123
+    url: jdbc:mysql://8.134.208.93:3306/db_douyin?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
+    #    type: com.alibaba.druid.pool.DruidDataSource
+    username: ENC(5Ev24JNagGONP1Ca9+xZWg==)
+    password: ENC(lQ3mg76A7j6WOm/j8zQ5dyfaDa06L4FX)
 
   redis:
-    host: 127.0.0.1
+    host: 8.134.208.93
     port: 6379
-    database: 0
-
+    password: ENC(lQ3mg76A7j6WOm/j8zQ5dyfaDa06L4FX)
+    database: 4
 
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
@@ -41,12 +40,12 @@ feign:
   client:
     config:
       default:
-        connectTimeout: 2000
-        readTimeout: 2000
+        connectTimeout: 10000
+        readTimeout: 10000
         loggerLevel: FULL
 
 mybatis:
-#  mapper-locations: classpath:mapper/*.xml
+  mapper-locations: classpath:mapper/*.xml
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
@@ -54,6 +53,13 @@ mybatis:
 tokenbucket:
   capacity: 100
   rate: 1
+
+
+jasypt:
+  encryptor:
+    password: ${DouyinSecretKey}  #解密密钥，通过环境变量读取
+    algorithm: PBEWithMD5AndDES
+    iv-generator-classname: org.jasypt.iv.NoIvGenerator
 
 tencentyun:
   oss:
@@ -67,4 +73,6 @@ opentracing:
     enabled: true
     http-sender:
       url: http://8.134.208.93:14268/api/traces
-
+#    udp-sender:
+#      host: 8.134.208.93
+#      port: 6831
