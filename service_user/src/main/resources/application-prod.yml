@@ -58,6 +58,19 @@ feign:
         readTimeout: 10000
         loggerLevel: FULL
 
+
+async:
+  executor:
+    thread:
+      # 配置核心线程数（需要后续调整）
+      core_pool_size: 10
+      # 配置最大线程数
+      max_pool_size: 20
+      # 配置队列大小
+      queue_capacity: 999
+      name:
+        prefix: async-service-
+
 opentracing:
   jaeger:
     enabled: true

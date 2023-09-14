@@ -22,20 +22,20 @@
     </select>
 
 
-    <select id="getFollowUserIds" resultType="java.lang.Integer">
+    <select id="getFollowUserIds" resultType="java.lang.Long">
         select follow_id from tb_follows where user_id = #{userId} and is_follow = 1
     </select>
 
     <select id="selectFollowUserCount" resultType="java.lang.Integer">
-        select count(1) from tb_follows where user_id = #{userId} and is_follow = true
+        select count(1) from tb_follows where user_id = #{userId} and is_follow = 1
     </select>
 
     <select id="selectFollowerCount" resultType="java.lang.Integer">
-        select count(1) from tb_follows where follow_id = #{userId} and is_follow = true
+        select count(1) from tb_follows where follow_id = #{userId} and is_follow = 1
     </select>
 
-    <select id="getFollowerIds" resultType="java.lang.Integer">
-        select user_id from tb_follows where follow_id = #{userId} and is_follow = true
+    <select id="getFollowerIds" resultType="java.lang.Long">
+        select user_id from tb_follows where follow_id = #{userId} and is_follow = 1
     </select>
 
     <select id="getIsRelated" resultType="java.lang.Integer">

@@ -58,8 +58,8 @@ public class RelationService {
     public RelationResp related(Long toUserId, String actionType, TokenAuthSuccess tokenAuthSuccess) {
         try {
             String userId = tokenAuthSuccess.getUserId();
-            if (toUserId == Long.valueOf(userId)){
-                return new RelationResp("400", "你不能对自己进行此操作哦~",null);
+            if (toUserId.equals(Long.valueOf(userId))) {
+                return new RelationResp("400", "你不能对自己进行此操作哦~", null);
             }
             // 当前用户的关注者id列表
             String followUserIdKey = "followUserIds:" + userId;
@@ -168,16 +168,28 @@ public class RelationService {
         }
         // 缓存中没有,从数据库中获取
         // 先获取id集合
-        List<Long> userIdList = stringRedisTemplate.opsForSet().members(idKey).stream().map(
-                Long::valueOf
-        ).collect(Collectors.toList());
-
-//        List<Integer> followUserIds = relationMapper.getFollowUserIds(userId);
+        List<Long> userIdList;
+        if (stringRedisTemplate.hasKey(idKey)) {
+            userIdList = stringRedisTemplate.opsForSet().members(idKey).stream().map(
+                    Long::valueOf
+            ).collect(Collectors.toList());
+        }else {
+            // 因为异常情况key被删除的时候 或者 用户因为取消关注至没有关注者的时候,需要去数据库获取
+            // 缓存中没有
+            userIdList = relationMapper.getFollowUserIds(userId);
+        }
+        if(userIdList.isEmpty()){
+            return new RelationResp("0", "获取关注用户列表成功", null);
+        }
 
         // 根据用户id列表获取关注用户详情列表
         List<UserVo> userInfoList = userFeignClient.getUserInfoList(userIdList, Long.valueOf(tokenAuthSuccess.getUserId()));
         // 存入redis中
         redisTemplate.opsForValue().set(key, userInfoList, 2, TimeUnit.HOURS);
+        // id列表也存入redis中
+        List<String> userIdListString = userIdList.stream().map(String::valueOf).collect(Collectors.toList());
+        stringRedisTemplate.opsForSet().add(idKey, userIdListString.toArray(new String[0]));
+
         log.info("获取关注用户列表------------->从MySQL中查询");
         return new RelationResp("0", "获取关注用户列表成功", userInfoList);
     }
@@ -193,15 +205,29 @@ public class RelationService {
             return new RelationResp("0", "获取粉丝用户列表成功", userVoList);
         }
         // 缓存中没有,从数据库中获取
-//        List<Integer> followerIds = relationMapper.getFollowerIds(userId);
-        // id列表从redis中获取
-        List<Long> userIdList = stringRedisTemplate.opsForSet().members(idKey).stream().map(
-                Long::valueOf
-        ).collect(Collectors.toList());
+        List<Long> userIdList;
+        if (stringRedisTemplate.hasKey(idKey)) {
+            // id列表从redis中获取
+            userIdList = stringRedisTemplate.opsForSet().members(idKey).stream().map(
+                    Long::valueOf
+            ).collect(Collectors.toList());
+        }else {
+            //         缓存中没有
+            userIdList = relationMapper.getFollowerIds(userId);
+        }
+
+        if(userIdList.isEmpty()){
+            return new RelationResp("0", "获取粉丝用户列表成功", null);
+        }
+
         // 根据用户id列表获取粉丝用户详情列表
         List<UserVo> userInfoList = userFeignClient.getUserInfoList(userIdList, Long.valueOf(tokenAuthSuccess.getUserId()));
         // 存入redis中
         redisTemplate.opsForValue().set(key, userInfoList, 2, TimeUnit.HOURS);
+        // 将id列表存入redis中
+        List<String> userIdListString = userIdList.stream().map(String::valueOf).collect(Collectors.toList());
+        stringRedisTemplate.opsForSet().add(idKey, userIdListString.toArray(new String[0]));
+
         log.info("获取粉丝用户列表------------->从MySQL中查询");
         return new RelationResp("0", "获取粉丝用户列表成功", userInfoList);
     }
@@ -232,4 +258,5 @@ public class RelationService {
         ).collect(Collectors.toList());
         return new MutualFollowResp("0", "获取互相关注用户列表", friendUserList);
     }
+
 }

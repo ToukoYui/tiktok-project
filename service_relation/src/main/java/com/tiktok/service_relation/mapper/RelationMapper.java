@@ -13,13 +13,13 @@ public interface RelationMapper {
 
     void updateRelated(Long userId, Long toUserId, Integer isRelated);
 
-    List<Integer> getFollowUserIds(Long userId);
+    List<Long> getFollowUserIds(Long userId);
 
     Integer selectFollowUserCount(Long userId);
 
     Integer selectFollowerCount(Long userId);
 
-    List<Integer> getFollowerIds(Long userId);
+    List<Long> getFollowerIds(Long userId);
 
     Integer getIsRelated(Long authorId, Long userId);
 }
