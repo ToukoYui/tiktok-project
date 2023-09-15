@@ -3,6 +3,7 @@ package com.tiktok.service_relation.service;
 import cn.hutool.core.bean.BeanUtil;
 import com.tiktok.feign_util.utils.MessageFeignClient;
 import com.tiktok.feign_util.utils.UserFeignClient;
+import com.tiktok.model.entity.message.LatestMsg;
 import com.tiktok.model.vo.TokenAuthSuccess;
 import com.tiktok.model.vo.message.MessageVo;
 import com.tiktok.model.vo.relation.MutualFollowResp;
@@ -263,13 +264,13 @@ public class RelationService {
                     FriendUser friendUser = new FriendUser();
                     BeanUtil.copyProperties(userVo, friendUser);
                     // todo 获取该好友的最新聊天信息
-                    MessageVo latestMessage = messageFeignClient.getLatestMessage(userId, userVo.getId());
+                    LatestMsg latestMessage = messageFeignClient.getLatestMessage(userId, userVo.getId());
                     if (latestMessage == null) {
                         friendUser.setMassage(null);
                     } else {
-                        friendUser.setMassage(latestMessage.getContent());
+                        friendUser.setMassage(latestMessage.getMessage());
                     }
-                    friendUser.setMsgType(1L);
+                    friendUser.setMsgType(latestMessage.getMsgType());
                     return friendUser;
                 }
         ).collect(Collectors.toList());

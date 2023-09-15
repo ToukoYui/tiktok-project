@@ -12,5 +12,5 @@ public class FriendUser extends UserVo {
 
     String massage;
 
-    Long msgType;
+    Integer msgType;
 }

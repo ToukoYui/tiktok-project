@@ -15,7 +15,11 @@
 
 
     <select id="getMessageList" resultType="com.tiktok.model.entity.message.Message" resultMap="messageMap">
-        select * from tb_message where user_id = #{userId} and to_user_id = #{toUserId}
+        select * from tb_message
+        where user_id = #{userId} and to_user_id = #{toUserId}
+          <if test="preTime != null">
+              and create_time &lt;= #{preTime}
+          </if>
     </select>
 
     <select id="getLatestMessage" resultType="com.tiktok.model.entity.message.Message" resultMap="messageMap">

@@ -2,6 +2,7 @@ package com.tiktok.service_message.controller;
 
 import com.tiktok.common_util.utils.JjwtUtil;
 import com.tiktok.model.anno.TokenAuthAnno;
+import com.tiktok.model.entity.message.LatestMsg;
 import com.tiktok.model.entity.message.Message;
 import com.tiktok.model.vo.TokenAuthSuccess;
 import com.tiktok.model.vo.message.MessageResp;
@@ -12,6 +13,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -32,12 +34,17 @@ public class MessageController {
      * @return
      */
     @GetMapping("/chat")
-    public MessageResp getMessageList(@RequestParam("to_user_id") Long toUserId, @TokenAuthAnno TokenAuthSuccess tokenAuthSuccess) {
+    public MessageResp getMessageList(@RequestParam("to_user_id") Long toUserId, @RequestParam("pre_msg_time") Long preMsgTime, @TokenAuthAnno TokenAuthSuccess tokenAuthSuccess) {
         if (tokenAuthSuccess == null || !tokenAuthSuccess.getIsSuccess()) {
             return new MessageResp("401", "请先登录哦~", null);
         }
+        log.info("前端传来的时间戳------------------>" + preMsgTime);
+        LocalDateTime preTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(preMsgTime), ZoneId.systemDefault());
         Long userId = Long.valueOf(tokenAuthSuccess.getUserId());
-        List<Message> messageList = messageService.getMessageList(userId, toUserId);
+        if (preMsgTime.equals(0L)) {
+            preTime = null;
+        }
+        List<Message> messageList = messageService.getMessageList(userId, toUserId, preTime);
         // 由于前端需要时间戳，LocalDateTime只能转了
         List<MessageVo> messageVoList = messageList.stream().map(message -> {
             MessageVo messageVo = new MessageVo();
@@ -78,18 +85,11 @@ public class MessageController {
      * @return
      */
     @GetMapping("/inner/latest")
-    public MessageVo getLatestMessage(@RequestParam("userId") Long userId, @RequestParam("friendId") Long friendId) {
-        Message latestMessage = messageService.getLatestMessage(userId, friendId);
-        if (latestMessage == null) {
+    public LatestMsg getLatestMessage(@RequestParam("userId") Long userId, @RequestParam("friendId") Long friendId) {
+        LatestMsg latestMsg = messageService.getLatestMessage(userId, friendId);
+        if (latestMsg == null) {
             return null;
-        } else {
-            MessageVo messageVo = new MessageVo();
-            messageVo.setContent(latestMessage.getContent());
-            messageVo.setUserId(latestMessage.getUserId());
-            messageVo.setToUserId(latestMessage.getToUserId());
-            Long timestamp = latestMessage.getCreateTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
-            messageVo.setCreateTime(timestamp);
-            return messageVo;
         }
+        return latestMsg;
     }
 }
