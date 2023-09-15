@@ -1,8 +1,10 @@
 package com.tiktok.service_relation.service;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.tiktok.feign_util.utils.MessageFeignClient;
 import com.tiktok.feign_util.utils.UserFeignClient;
 import com.tiktok.model.vo.TokenAuthSuccess;
+import com.tiktok.model.vo.message.MessageVo;
 import com.tiktok.model.vo.relation.MutualFollowResp;
 import com.tiktok.model.vo.relation.RelationResp;
 import com.tiktok.model.vo.user.FriendUser;
@@ -32,6 +34,9 @@ public class RelationService {
 
     @Autowired
     private UserFeignClient userFeignClient;
+
+    @Autowired
+    private MessageFeignClient messageFeignClient;
 
     @Resource
     private RedisTemplate<String, List<UserVo>> redisTemplate;
@@ -111,8 +116,6 @@ public class RelationService {
             e.printStackTrace();
             return new RelationResp("500", "服务器出错,关注失败", null);
         }
-        // 删除所视频缓存
-//        redisTemplate.delete("user:*");
         redisTemplate.delete("videolist:public");
         return new RelationResp("0", actionType.equals("1") ? "关注成功" : "取消关注成功", null);
     }
@@ -173,12 +176,12 @@ public class RelationService {
             userIdList = stringRedisTemplate.opsForSet().members(idKey).stream().map(
                     Long::valueOf
             ).collect(Collectors.toList());
-        }else {
+        } else {
             // 因为异常情况key被删除的时候 或者 用户因为取消关注至没有关注者的时候,需要去数据库获取
             // 缓存中没有
             userIdList = relationMapper.getFollowUserIds(userId);
         }
-        if(userIdList.isEmpty()){
+        if (userIdList.isEmpty()) {
             return new RelationResp("0", "获取关注用户列表成功", null);
         }
 
@@ -211,12 +214,12 @@ public class RelationService {
             userIdList = stringRedisTemplate.opsForSet().members(idKey).stream().map(
                     Long::valueOf
             ).collect(Collectors.toList());
-        }else {
+        } else {
             //         缓存中没有
             userIdList = relationMapper.getFollowerIds(userId);
         }
 
-        if(userIdList.isEmpty()){
+        if (userIdList.isEmpty()) {
             return new RelationResp("0", "获取粉丝用户列表成功", null);
         }
 
@@ -239,6 +242,15 @@ public class RelationService {
         //  根据key获取共同关注用户的id集合
         String key = "followUserIds:" + userId;
         String key2 = "followerIds:" + userId;
+        // 需要判断key有没有过期
+        if (!stringRedisTemplate.hasKey(key)) {
+            List<Long> list = relationMapper.getFollowUserIds(userId);
+            stringRedisTemplate.opsForSet().add(key, list.toArray(new String[0]));
+        }
+        if (!stringRedisTemplate.hasKey(key2)) {
+            List<Long> list = relationMapper.getFollowerIds(userId);
+            stringRedisTemplate.opsForSet().add(key, list.toArray(new String[0]));
+        }
         Set<String> intersect = stringRedisTemplate.opsForSet().intersect(key, key2);
         // 判断是否有共同关注用户对象,没有则返回空集合
         if (intersect == null || intersect.isEmpty()) {
@@ -251,8 +263,13 @@ public class RelationService {
                     FriendUser friendUser = new FriendUser();
                     BeanUtil.copyProperties(userVo, friendUser);
                     // todo 获取该好友的最新聊天信息
-
-                    // todo message消息的类型
+                    MessageVo latestMessage = messageFeignClient.getLatestMessage(userId, userVo.getId());
+                    if (latestMessage == null) {
+                        friendUser.setMassage(null);
+                    } else {
+                        friendUser.setMassage(latestMessage.getContent());
+                    }
+                    friendUser.setMsgType(1L);
                     return friendUser;
                 }
         ).collect(Collectors.toList());

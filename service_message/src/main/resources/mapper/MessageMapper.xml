@@ -18,5 +18,8 @@
         select * from tb_message where user_id = #{userId} and to_user_id = #{toUserId}
     </select>
 
+    <select id="getLatestMessage" resultType="com.tiktok.model.entity.message.Message" resultMap="messageMap">
+        select * from tb_message where user_id = #{userId} order by create_time desc limit 1
+    </select>
 
 </mapper>

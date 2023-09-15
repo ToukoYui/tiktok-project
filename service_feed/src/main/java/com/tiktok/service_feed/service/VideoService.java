@@ -96,13 +96,11 @@ public class VideoService {
                 countDownLatch = new CountDownLatch(cul);
                 VideoVo videoVo = new VideoVo();
                 BeanUtils.copyProperties(video, videoVo);
-                // 获取用户id
-                Long userId = Long.valueOf(tokenAuthSuccess.getUserId());
                 // 异步获取
                 // thread1.用户是否已点赞该视频 如果用户登录了才获取
                 Boolean isLike = null;
                 if (flag) {
-                    isLike = asyncService.getIsLikeByVideoIdAsync(countDownLatch, userId, video.getId());
+                    isLike = asyncService.getIsLikeByVideoIdAsync(countDownLatch, Long.valueOf(tokenAuthSuccess.getUserId()), video.getId());
 
                 }
                 // thread2.获取投稿视频的作者信息
@@ -110,7 +108,7 @@ public class VideoService {
                 Boolean isFollowed = false;
                 if (flag ) {
                     // 用户是否已关注了该作者 如果用户登录了才获取
-                    isFollowed = asyncService.getIsFollowedByUserIdAsync(countDownLatch, userId, video.getUserId());
+                    isFollowed = asyncService.getIsFollowedByUserIdAsync(countDownLatch, Long.valueOf(tokenAuthSuccess.getUserId()), video.getUserId());
                 }
                 UserVo authorInfo = asyncService.getAuthorInfoAsync(countDownLatch, video.getUserId());
 

@@ -15,5 +15,5 @@ public class MessageResp {
     @JsonProperty("status_msg")
     private String statusMsg;
     @JsonProperty("message_list")
-    private List<Message> messageList;
+    private List<MessageVo> messageList;
 }

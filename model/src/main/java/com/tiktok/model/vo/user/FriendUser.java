@@ -1,11 +1,16 @@
 package com.tiktok.model.vo.user;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
-@NoArgsConstructor
-@AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+@Data
 public class FriendUser extends UserVo {
+
     String massage;
-    int msgType;
+
+    Long msgType;
 }

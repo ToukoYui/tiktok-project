@@ -1,6 +1,7 @@
 package com.tiktok.service_message.mapper;
 
 import com.tiktok.model.entity.message.Message;
+import com.tiktok.model.vo.message.MessageVo;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
@@ -12,5 +13,6 @@ public interface MessageMapper {
 
     void insertMessage(Message message);
 
+    Message getLatestMessage(Long userId);
 
 }
