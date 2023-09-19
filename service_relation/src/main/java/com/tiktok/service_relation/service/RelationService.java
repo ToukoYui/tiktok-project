@@ -43,6 +43,9 @@ public class RelationService {
     private RedisTemplate<String, List<UserVo>> redisTemplate;
 
     @Resource
+    private RedisTemplate<String, Long> longRedisTemplate;
+
+    @Resource
     private StringRedisTemplate stringRedisTemplate;
 
     private static final DefaultRedisScript<Long> FOLLOW_SCRIPT;
@@ -244,13 +247,14 @@ public class RelationService {
         String key = "followUserIds:" + userId;
         String key2 = "followerIds:" + userId;
         // 需要判断key有没有过期
-        if (!stringRedisTemplate.hasKey(key)) {
+        if (!longRedisTemplate.hasKey(key)) {
             List<Long> list = relationMapper.getFollowUserIds(userId);
-            stringRedisTemplate.opsForSet().add(key, list.toArray(new String[0]));
+            // 换成与
+            longRedisTemplate.opsForSet().add(key, list.toArray(new Long[0]));
         }
-        if (!stringRedisTemplate.hasKey(key2)) {
+        if (!longRedisTemplate.hasKey(key2)) {
             List<Long> list = relationMapper.getFollowerIds(userId);
-            stringRedisTemplate.opsForSet().add(key, list.toArray(new String[0]));
+            longRedisTemplate.opsForSet().add(key2, list.toArray(new Long[0]));
         }
         Set<String> intersect = stringRedisTemplate.opsForSet().intersect(key, key2);
         // 判断是否有共同关注用户对象,没有则返回空集合
