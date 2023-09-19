@@ -51,6 +51,9 @@ public class AsyncService {
 
     public Boolean getIsFollowedByUserIdAsync(CountDownLatch countDownLatch, Long userId, Long authorId) {
         try {
+            if (userId.equals(authorId)){
+                return false;
+            }
             Future<Boolean> submit = threadExecutor.submit(() -> {
                 Boolean isLike = relationFeignClient.getIsRelated(authorId, userId);
                 log.info(Thread.currentThread().getName() + "----------->获取是否点赞");

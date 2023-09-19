@@ -1,8 +1,11 @@
 package com.tiktok.service_relation.service;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.tiktok.feign_util.utils.MessageFeignClient;
 import com.tiktok.feign_util.utils.UserFeignClient;
+import com.tiktok.model.entity.message.LatestMsg;
 import com.tiktok.model.vo.TokenAuthSuccess;
+import com.tiktok.model.vo.message.MessageVo;
 import com.tiktok.model.vo.relation.MutualFollowResp;
 import com.tiktok.model.vo.relation.RelationResp;
 import com.tiktok.model.vo.user.FriendUser;
@@ -33,6 +36,9 @@ public class RelationService {
     @Autowired
     private UserFeignClient userFeignClient;
 
+    @Autowired
+    private MessageFeignClient messageFeignClient;
+
     @Resource
     private RedisTemplate<String, List<UserVo>> redisTemplate;
 
@@ -58,8 +64,8 @@ public class RelationService {
     public RelationResp related(Long toUserId, String actionType, TokenAuthSuccess tokenAuthSuccess) {
         try {
             String userId = tokenAuthSuccess.getUserId();
-            if (toUserId == Long.valueOf(userId)){
-                return new RelationResp("400", "你不能对自己进行此操作哦~",null);
+            if (toUserId.equals(Long.valueOf(userId))) {
+                return new RelationResp("400", "你不能对自己进行此操作哦~", null);
             }
             // 当前用户的关注者id列表
             String followUserIdKey = "followUserIds:" + userId;
@@ -111,8 +117,6 @@ public class RelationService {
             e.printStackTrace();
             return new RelationResp("500", "服务器出错,关注失败", null);
         }
-        // 删除所视频缓存
-//        redisTemplate.delete("user:*");
         redisTemplate.delete("videolist:public");
         return new RelationResp("0", actionType.equals("1") ? "关注成功" : "取消关注成功", null);
     }
@@ -168,16 +172,28 @@ public class RelationService {
         }
         // 缓存中没有,从数据库中获取
         // 先获取id集合
-        List<Long> userIdList = stringRedisTemplate.opsForSet().members(idKey).stream().map(
-                Long::valueOf
-        ).collect(Collectors.toList());
-
-//        List<Integer> followUserIds = relationMapper.getFollowUserIds(userId);
+        List<Long> userIdList;
+        if (stringRedisTemplate.hasKey(idKey)) {
+            userIdList = stringRedisTemplate.opsForSet().members(idKey).stream().map(
+                    Long::valueOf
+            ).collect(Collectors.toList());
+        } else {
+            // 因为异常情况key被删除的时候 或者 用户因为取消关注至没有关注者的时候,需要去数据库获取
+            // 缓存中没有
+            userIdList = relationMapper.getFollowUserIds(userId);
+        }
+        if (userIdList.isEmpty()) {
+            return new RelationResp("0", "获取关注用户列表成功", null);
+        }
 
         // 根据用户id列表获取关注用户详情列表
         List<UserVo> userInfoList = userFeignClient.getUserInfoList(userIdList, Long.valueOf(tokenAuthSuccess.getUserId()));
         // 存入redis中
         redisTemplate.opsForValue().set(key, userInfoList, 2, TimeUnit.HOURS);
+        // id列表也存入redis中
+        List<String> userIdListString = userIdList.stream().map(String::valueOf).collect(Collectors.toList());
+        stringRedisTemplate.opsForSet().add(idKey, userIdListString.toArray(new String[0]));
+
         log.info("获取关注用户列表------------->从MySQL中查询");
         return new RelationResp("0", "获取关注用户列表成功", userInfoList);
     }
@@ -193,15 +209,29 @@ public class RelationService {
             return new RelationResp("0", "获取粉丝用户列表成功", userVoList);
         }
         // 缓存中没有,从数据库中获取
-//        List<Integer> followerIds = relationMapper.getFollowerIds(userId);
-        // id列表从redis中获取
-        List<Long> userIdList = stringRedisTemplate.opsForSet().members(idKey).stream().map(
-                Long::valueOf
-        ).collect(Collectors.toList());
+        List<Long> userIdList;
+        if (stringRedisTemplate.hasKey(idKey)) {
+            // id列表从redis中获取
+            userIdList = stringRedisTemplate.opsForSet().members(idKey).stream().map(
+                    Long::valueOf
+            ).collect(Collectors.toList());
+        } else {
+            //         缓存中没有
+            userIdList = relationMapper.getFollowerIds(userId);
+        }
+
+        if (userIdList.isEmpty()) {
+            return new RelationResp("0", "获取粉丝用户列表成功", null);
+        }
+
         // 根据用户id列表获取粉丝用户详情列表
         List<UserVo> userInfoList = userFeignClient.getUserInfoList(userIdList, Long.valueOf(tokenAuthSuccess.getUserId()));
         // 存入redis中
         redisTemplate.opsForValue().set(key, userInfoList, 2, TimeUnit.HOURS);
+        // 将id列表存入redis中
+        List<String> userIdListString = userIdList.stream().map(String::valueOf).collect(Collectors.toList());
+        stringRedisTemplate.opsForSet().add(idKey, userIdListString.toArray(new String[0]));
+
         log.info("获取粉丝用户列表------------->从MySQL中查询");
         return new RelationResp("0", "获取粉丝用户列表成功", userInfoList);
     }
@@ -213,6 +243,15 @@ public class RelationService {
         //  根据key获取共同关注用户的id集合
         String key = "followUserIds:" + userId;
         String key2 = "followerIds:" + userId;
+        // 需要判断key有没有过期
+        if (!stringRedisTemplate.hasKey(key)) {
+            List<Long> list = relationMapper.getFollowUserIds(userId);
+            stringRedisTemplate.opsForSet().add(key, list.toArray(new String[0]));
+        }
+        if (!stringRedisTemplate.hasKey(key2)) {
+            List<Long> list = relationMapper.getFollowerIds(userId);
+            stringRedisTemplate.opsForSet().add(key, list.toArray(new String[0]));
+        }
         Set<String> intersect = stringRedisTemplate.opsForSet().intersect(key, key2);
         // 判断是否有共同关注用户对象,没有则返回空集合
         if (intersect == null || intersect.isEmpty()) {
@@ -225,11 +264,17 @@ public class RelationService {
                     FriendUser friendUser = new FriendUser();
                     BeanUtil.copyProperties(userVo, friendUser);
                     // todo 获取该好友的最新聊天信息
-
-                    // todo message消息的类型
+                    LatestMsg latestMessage = messageFeignClient.getLatestMessage(userId, userVo.getId());
+                    if (latestMessage == null) {
+                        friendUser.setMassage(null);
+                    } else {
+                        friendUser.setMassage(latestMessage.getMessage());
+                    }
+                    friendUser.setMsgType(latestMessage.getMsgType());
                     return friendUser;
                 }
         ).collect(Collectors.toList());
         return new MutualFollowResp("0", "获取互相关注用户列表", friendUserList);
     }
+
 }

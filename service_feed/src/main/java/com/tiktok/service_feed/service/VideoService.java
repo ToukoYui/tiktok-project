@@ -106,7 +106,7 @@ public class VideoService {
                 // thread2.获取投稿视频的作者信息
                 // 如果是登录用户,需要返回与该用户的关注关系
                 Boolean isFollowed = false;
-                if (flag) {
+                if (flag ) {
                     // 用户是否已关注了该作者 如果用户登录了才获取
                     isFollowed = asyncService.getIsFollowedByUserIdAsync(countDownLatch, Long.valueOf(tokenAuthSuccess.getUserId()), video.getUserId());
                 }

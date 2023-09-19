@@ -22,7 +22,7 @@ spring:
     host: 8.134.208.93
     port: 6379
     password: ENC(lQ3mg76A7j6WOm/j8zQ5dyfaDa06L4FX)
-    database: 0
+    database: 1
 
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
@@ -57,6 +57,19 @@ feign:
         connectTimeout: 10000
         readTimeout: 10000
         loggerLevel: FULL
+
+
+async:
+  executor:
+    thread:
+      # 配置核心线程数（需要后续调整）
+      core_pool_size: 10
+      # 配置最大线程数
+      max_pool_size: 20
+      # 配置队列大小
+      queue_capacity: 999
+      name:
+        prefix: async-service-
 
 opentracing:
   jaeger:

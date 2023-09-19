@@ -12,6 +12,7 @@
         <module>service_chat</module>
         <module>model</module>
         <module>service_comment</module>
+        <module>service_message</module>
     </modules>
     <parent>
         <groupId>org.springframework.boot</groupId>

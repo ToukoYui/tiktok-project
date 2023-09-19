@@ -1,28 +1,31 @@
 server:
-  port: 8021
+  port: 8026
+  max-http-header-size: 20480
   servlet:
     context-path: /douyin #request prefix
-  max-http-header-size: 20480
 
 spring:
   application:
-    name: service-user
+    name: service-message
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 20MB
+
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://8.134.208.93:3306/db_douyin?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
-    #    type: com.alibaba.druid.pool.DruidDataSource
+#    type: com.alibaba.druid.pool.DruidDataSource
     username: ENC(5Ev24JNagGONP1Ca9+xZWg==)
     password: ENC(lQ3mg76A7j6WOm/j8zQ5dyfaDa06L4FX)
-    hikari:
-      max-lifetime: 120000  #连接存活两分钟
-      maximum-pool-size: 300
 
   redis:
     host: 8.134.208.93
     port: 6379
     password: ENC(lQ3mg76A7j6WOm/j8zQ5dyfaDa06L4FX)
-    database: 1
+    database: 6
 
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
@@ -32,6 +35,14 @@ spring:
     nacos:
       discovery:
         server-addr: 127.0.0.1:8848
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 10000
+        readTimeout: 10000
+        loggerLevel: FULL
 
 mybatis:
   mapper-locations: classpath:mapper/*.xml
@@ -50,19 +61,9 @@ jasypt:
     algorithm: PBEWithMD5AndDES
     iv-generator-classname: org.jasypt.iv.NoIvGenerator
 
-feign:
-  client:
-    config:
-      default:
-        connectTimeout: 10000
-        readTimeout: 10000
-        loggerLevel: FULL
-
-opentracing:
-  jaeger:
-    enabled: true
-    http-sender:
-      url: http://8.134.208.93:14268/api/traces
-#    udp-sender:
-#      host: 8.134.208.93
-#      port: 6831
+tencentyun:
+  oss:
+    cosRegion: ap-guangzhou #地域名
+    bucket: douyin-1313537069 # 存储桶名
+    secretId: ENC(Z3G9H2hwpdQMR1XbLcQxRr4T0wT8tVfBcUEhhP3PbBU41ODHLXu2hJ/y/95nKkrZ)
+    secretKey: ENC(NAVTBxcwmDTcgKidk60YDWNh3t/OiaiuHJLVEshs+R8cFRsy1wFeRwBQ6LVEZ4rZ)

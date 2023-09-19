@@ -7,6 +7,11 @@ import com.tiktok.service_relation.service.RelationService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.StringRedisTemplate;
+
+import javax.annotation.Resource;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @SpringBootTest
 class ServiceRelationApplicationTests {
@@ -22,6 +27,9 @@ class ServiceRelationApplicationTests {
     @Autowired
     private RelationController relationController;
 
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
+
     @Test
     void contextLoads() {
     }
@@ -34,6 +42,14 @@ class ServiceRelationApplicationTests {
 //        System.out.println(isRelated1);
 //        boolean isRelated = relationController.getIsRelated(1L, 4L);
 //        System.out.println(isRelated);
+    }
+
+    @Test
+    void testSaveIds() {
+        String idKey = "followUserIds:" + 4L;
+        List<Long> followUserIds = relationMapper.getFollowUserIds(4L);
+        List<String> followUserIdsString = followUserIds.stream().map(String::valueOf).collect(Collectors.toList());
+        stringRedisTemplate.opsForSet().add(idKey,followUserIdsString.toArray(new String[0]));
     }
 
 }
