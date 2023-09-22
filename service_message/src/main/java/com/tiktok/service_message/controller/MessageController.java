@@ -7,6 +7,7 @@ import com.tiktok.model.entity.message.Message;
 import com.tiktok.model.vo.TokenAuthSuccess;
 import com.tiktok.model.vo.message.MessageResp;
 import com.tiktok.model.vo.message.MessageVo;
+import com.tiktok.service_message.service.ChatgptService;
 import com.tiktok.service_message.service.MessageService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -64,7 +65,8 @@ public class MessageController {
         }).sorted(Comparator.comparing(MessageVo::getCreateTime)).collect(Collectors.toList());
         return new MessageResp("0", "获取聊天记录成功", messageVoList);
     }
-
+    @Autowired
+    private ChatgptService chatgptService;
     @PostMapping("/action")
     public MessageResp sendMessage(@RequestParam("to_user_id") Long toUserId, String content, @TokenAuthAnno TokenAuthSuccess tokenAuthSuccess) {
         if (tokenAuthSuccess == null || !tokenAuthSuccess.getIsSuccess()) {
@@ -77,6 +79,10 @@ public class MessageController {
             message.setUserId(userId);
             message.setToUserId(toUserId);
             message.setCreateTime(LocalDateTime.now());
+            //todo 这一步可异步
+            if(toUserId == 7){
+                chatgptService.send(message.getContent());
+            }
             messageService.sendMessage(message);
         } catch (Exception e) {
             log.error(e.getMessage());
