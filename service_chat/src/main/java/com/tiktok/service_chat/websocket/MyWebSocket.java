@@ -23,9 +23,7 @@ import javax.servlet.http.HttpSession;
 import javax.websocket.*;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
-import java.io.IOException;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -40,14 +38,14 @@ public class MyWebSocket {
      * 记录当前在线连接数
      */
     public static final Map<String, Session> sessionMap = new ConcurrentHashMap<>();
+    private ChatService chatService;
     //与某个客户端的连接会话，需要通过它来给客户端发送数据
     private Session session;
     private String username;
     //获取全局容器
-    //获取全局容器
     private ApplicationContext applicationContext;
     //聊天逻辑层service
-    private ChatService chatService;
+
 
 
 
@@ -84,7 +82,6 @@ public class MyWebSocket {
     @OnClose
     public void onClose() {
         webSocketSet.remove(this);  //从set中删除
-
     }
 
     /**

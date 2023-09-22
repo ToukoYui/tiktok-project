@@ -21,7 +21,6 @@ public class MessageService {
     private RedisTemplate<String,Integer> redisTemplate;
 
     public List<Message> getMessageList(Long userId, Long toUserId, LocalDateTime preTime) {
-
         List<Message> messageList = messageMapper.getMessageList(userId, toUserId, preTime);
         String key = "message:" + userId + "_" + toUserId + ":";
         List<Message> resultList = new ArrayList<>();

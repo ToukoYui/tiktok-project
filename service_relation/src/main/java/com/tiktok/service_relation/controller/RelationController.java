@@ -120,6 +120,9 @@ public class RelationController {
     @GetMapping("/inner/follow/relationship")
     public boolean getIsRelated(@RequestParam("authorId") Long authorId, @RequestParam("userId") Long userId) {
         Integer isRelated = relationMapper.getIsRelated(authorId, userId);
+        if(isRelated == null){
+            return false;
+        }
         return isRelated != 0;
     }
 

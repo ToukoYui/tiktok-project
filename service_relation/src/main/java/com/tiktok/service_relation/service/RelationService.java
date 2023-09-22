@@ -253,12 +253,19 @@ public class RelationService {
             stringRedisTemplate.opsForSet().add(key, list.toArray(new String[0]));
         }
         Set<String> intersect = stringRedisTemplate.opsForSet().intersect(key, key2);
+        //数据库已添加一个id为7的gpt用户
+        intersect.add("7");
         // 判断是否有共同关注用户对象,没有则返回空集合
         if (intersect == null || intersect.isEmpty()) {
             return new MutualFollowResp("0", "没有互相关注的人哦~", null);
         }
         List<Long> userIdList = intersect.stream().map(Long::valueOf).collect(Collectors.toList());
         List<UserVo> userInfoList = userFeignClient.getUserInfoList(userIdList, userId);
+//        UserVo gpt = new UserVo();
+//        gpt.setId(7l);
+//        gpt.setUsername("GPT");
+//        gpt.setIsFollow(true);
+//        userInfoList.add(gpt);
         List<FriendUser> friendUserList = userInfoList.stream().map(
                 userVo -> {
                     FriendUser friendUser = new FriendUser();
