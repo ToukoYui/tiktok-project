@@ -100,13 +100,15 @@ public class UserService {
     public UserLoginResp userLogin(String username, String password) {
         UserLoginResp userLoginResp = new UserLoginResp();
 
-
         if (StringUtils.isEmpty(username) || StringUtils.isEmpty(password)) {
             userLoginResp.setStatusMsg("用户信息填写有误");
             userLoginResp.setStatusCode(401);
         } else {
             // 查询用户
             User user = userMapper.selectByUserNameAndPassword(username, password);
+            if (user.getId() == 7){
+                return new UserLoginResp(444,"你登陆尼玛gpt账号呢？",null,null);
+            }
             if (user != null) {
                 // 查找到用户则生成一个token并返回给客户端
                 userLoginResp.setUserId(user.getId());
