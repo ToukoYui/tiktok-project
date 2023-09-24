@@ -6,6 +6,7 @@ import cn.hutool.json.JSONUtil;
 import com.tiktok.model.entity.message.Message;
 import com.tiktok.service_message.mapper.MessageMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -22,7 +23,8 @@ import java.util.*;
 
 @Service
 public class ChatgptService {
-    private static String apiKey = "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"; // 替换为你的OpenAI API密钥
+    @Value("${chatgpt.apikey}")
+    private String apiKey = ""; // 替换为你的OpenAI API密钥
     private static String endpoint = "https://api.openai.com/v1/chat/completions";
     private Map<Long, List<String>> userSessions = new HashMap<>();
     @Autowired
