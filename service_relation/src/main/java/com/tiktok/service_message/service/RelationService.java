@@ -1,16 +1,15 @@
-package com.tiktok.service_relation.service;
+package com.tiktok.service_message.service;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.tiktok.feign_util.utils.MessageFeignClient;
 import com.tiktok.feign_util.utils.UserFeignClient;
 import com.tiktok.model.entity.message.LatestMsg;
 import com.tiktok.model.vo.TokenAuthSuccess;
-import com.tiktok.model.vo.message.MessageVo;
 import com.tiktok.model.vo.relation.MutualFollowResp;
 import com.tiktok.model.vo.relation.RelationResp;
 import com.tiktok.model.vo.user.FriendUser;
 import com.tiktok.model.vo.user.UserVo;
-import com.tiktok.service_relation.mapper.RelationMapper;
+import com.tiktok.service_message.mapper.RelationMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -261,11 +260,6 @@ public class RelationService {
         }
         List<Long> userIdList = intersect.stream().map(Long::valueOf).collect(Collectors.toList());
         List<UserVo> userInfoList = userFeignClient.getUserInfoList(userIdList, userId);
-//        UserVo gpt = new UserVo();
-//        gpt.setId(7l);
-//        gpt.setUsername("GPT");
-//        gpt.setIsFollow(true);
-//        userInfoList.add(gpt);
         List<FriendUser> friendUserList = userInfoList.stream().map(
                 userVo -> {
                     FriendUser friendUser = new FriendUser();
