@@ -5,7 +5,6 @@ import com.tiktok.feign_util.utils.MessageFeignClient;
 import com.tiktok.feign_util.utils.UserFeignClient;
 import com.tiktok.model.entity.message.LatestMsg;
 import com.tiktok.model.vo.TokenAuthSuccess;
-import com.tiktok.model.vo.message.MessageVo;
 import com.tiktok.model.vo.relation.MutualFollowResp;
 import com.tiktok.model.vo.relation.RelationResp;
 import com.tiktok.model.vo.user.FriendUser;
@@ -265,11 +264,6 @@ public class RelationService {
         }
         List<Long> userIdList = intersect.stream().map(Long::valueOf).collect(Collectors.toList());
         List<UserVo> userInfoList = userFeignClient.getUserInfoList(userIdList, userId);
-//        UserVo gpt = new UserVo();
-//        gpt.setId(7l);
-//        gpt.setUsername("GPT");
-//        gpt.setIsFollow(true);
-//        userInfoList.add(gpt);
         List<FriendUser> friendUserList = userInfoList.stream().map(
                 userVo -> {
                     FriendUser friendUser = new FriendUser();

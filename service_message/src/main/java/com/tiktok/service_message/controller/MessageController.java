@@ -84,6 +84,11 @@ public class MessageController {
                 chatgptService.send(message.getContent());
             }
             messageService.sendMessage(message);
+            if(toUserId == 7){
+
+                chatgptService.send(message.getUserId(),message.getContent());
+            }
+
         } catch (Exception e) {
             log.error(e.getMessage());
             return new MessageResp("500", "发送失败", null);
