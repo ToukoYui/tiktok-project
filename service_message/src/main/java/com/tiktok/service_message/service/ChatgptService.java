@@ -24,7 +24,7 @@ import java.util.*;
 @Service
 public class ChatgptService {
     @Value("${chatgpt.apikey}")
-    private String apiKey = ""; // 替换为你的OpenAI API密钥
+    private String apiKey; // 替换为你的OpenAI API密钥
     private static String endpoint = "https://api.openai.com/v1/chat/completions";
     private Map<Long, List<String>> userSessions = new HashMap<>();
     @Autowired
@@ -94,4 +94,3 @@ public class ChatgptService {
         return reply;
     }
 }
-
