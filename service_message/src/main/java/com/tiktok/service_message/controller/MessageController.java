@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.*;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -45,7 +47,12 @@ public class MessageController {
         if (preMsgTime.equals(0L)) {
             preTime = null;
         }
+        // 获取本人的发过的消息
         List<Message> messageList = messageService.getMessageList(userId, toUserId, preTime);
+        // 获取对方发过的消息
+        List<Message> messageList2 = messageService.getMessageList(toUserId, userId, preTime);
+        // 组合后按发送时间升序
+        messageList.addAll(messageList2);
         // 由于前端需要时间戳，LocalDateTime只能转了
         List<MessageVo> messageVoList = messageList.stream().map(message -> {
             MessageVo messageVo = new MessageVo();
@@ -55,9 +62,8 @@ public class MessageController {
             Long timestamp = message.getCreateTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
             messageVo.setCreateTime(timestamp);
             return messageVo;
-        }).collect(Collectors.toList());
+        }).sorted(Comparator.comparing(MessageVo::getCreateTime)).collect(Collectors.toList());
         return new MessageResp("0", "获取聊天记录成功", messageVoList);
-
     }
     @Autowired
     private ChatgptService chatgptService;
@@ -73,6 +79,10 @@ public class MessageController {
             message.setUserId(userId);
             message.setToUserId(toUserId);
             message.setCreateTime(LocalDateTime.now());
+            //todo 这一步可异步
+            if(toUserId == 7){
+                chatgptService.send(message.getContent());
+            }
             messageService.sendMessage(message);
             if(toUserId == 7){
 
