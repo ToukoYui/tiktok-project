@@ -1,4 +1,4 @@
-package com.tiktok.service_message.service;
+package com.tiktok.service_relation.service;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.tiktok.feign_util.utils.MessageFeignClient;
@@ -9,7 +9,7 @@ import com.tiktok.model.vo.relation.MutualFollowResp;
 import com.tiktok.model.vo.relation.RelationResp;
 import com.tiktok.model.vo.user.FriendUser;
 import com.tiktok.model.vo.user.UserVo;
-import com.tiktok.service_message.mapper.RelationMapper;
+import com.tiktok.service_relation.mapper.RelationMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
