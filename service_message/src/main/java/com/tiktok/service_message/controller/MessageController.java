@@ -12,6 +12,7 @@ import com.tiktok.service_message.service.MessageService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
@@ -28,7 +29,8 @@ import java.util.stream.Collectors;
 public class MessageController {
     @Autowired
     private MessageService messageService;
-
+    @Autowired
+    private RedisTemplate<String,String> redisTemplate;
     /**
      * 查询聊天记录
      *
@@ -81,6 +83,9 @@ public class MessageController {
             message.setCreateTime(LocalDateTime.now());
             messageService.sendMessage(message);
             if(toUserId == 7){
+                if(redisTemplate.hasKey(userId+"DontRepeatSend")){
+                    return new MessageResp("444","请等待ai回答",null);
+                }
                 chatgptService.send(message.getUserId(),message.getContent());
             }
         } catch (Exception e) {
