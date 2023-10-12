@@ -10,7 +10,7 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>service_message</artifactId>
-    <name>service_relation</name>
+    <name>service_message</name>
 
     <dependencies>
         <dependency>
@@ -98,6 +98,11 @@
         <dependency>
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-redis</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.theokanning.openai-gpt3-java</groupId>
+            <artifactId>service</artifactId>
+            <version>0.16.0</version>
         </dependency>
     </dependencies>
 
