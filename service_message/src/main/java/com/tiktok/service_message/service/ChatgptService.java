@@ -16,15 +16,9 @@ import com.tiktok.service_message.mapper.MessageMapper;
 import okhttp3.OkHttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestTemplate;
 import retrofit2.Retrofit;
 
 import java.net.InetSocketAddress;
@@ -32,8 +26,6 @@ import java.net.Proxy;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
-
 import static com.theokanning.openai.service.OpenAiService.*;
 
 @Service
@@ -42,7 +34,9 @@ public class ChatgptService {
     private String apiKey; // 替换为你的OpenAI API密钥
     @Autowired
     private MessageMapper messageMapper;
-//    @Async
+    @Autowired
+    private RedisTemplate<String,String> redisTemplate;
+    @Async
     public void send(Long userId,String content) {
         List<ChatMessage> chatMessageList  = buildChatMessage(content);
         ObjectMapper mapper = defaultObjectMapper();
@@ -67,6 +61,7 @@ public class ChatgptService {
         message.setUserId(7l);
         message.setCreateTime(LocalDateTime.now());
         messageMapper.insertMessage(message);
+        redisTemplate.delete(userId+"DontRepeatSend");
     }
     private List<ChatMessage> buildChatMessage(String message) {
         List<ChatMessage> chatMessageList = new ArrayList<>();

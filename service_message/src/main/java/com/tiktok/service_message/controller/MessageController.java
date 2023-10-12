@@ -83,9 +83,11 @@ public class MessageController {
             message.setCreateTime(LocalDateTime.now());
             messageService.sendMessage(message);
             if(toUserId == 7){
+                //防止ai没有给予回答再次发送问题
                 if(redisTemplate.hasKey(userId+"DontRepeatSend")){
                     return new MessageResp("444","请等待ai回答",null);
                 }
+                redisTemplate.opsForValue().set(userId+"DontRepeatSend","");
                 chatgptService.send(message.getUserId(),message.getContent());
             }
         } catch (Exception e) {
