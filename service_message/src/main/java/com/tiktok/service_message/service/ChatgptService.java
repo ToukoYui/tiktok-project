@@ -42,7 +42,7 @@ public class ChatgptService {
     private String apiKey; // 替换为你的OpenAI API密钥
     @Autowired
     private MessageMapper messageMapper;
-//    @Async
+    @Async
     public void send(Long userId,String content) {
         List<ChatMessage> chatMessageList  = buildChatMessage(content);
         ObjectMapper mapper = defaultObjectMapper();
