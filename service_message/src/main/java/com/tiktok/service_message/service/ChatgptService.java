@@ -13,11 +13,9 @@ import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.service.OpenAiService;
 import com.tiktok.model.entity.message.Message;
 import com.tiktok.service_message.mapper.MessageMapper;
-import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -44,32 +42,24 @@ public class ChatgptService {
     private String apiKey; // 替换为你的OpenAI API密钥
     @Autowired
     private MessageMapper messageMapper;
-    @Autowired
-    private RedisTemplate<String,String> redisTemplate;
-    @Async
+//    @Async
     public void send(Long userId,String content) {
         List<ChatMessage> chatMessageList  = buildChatMessage(content);
         ObjectMapper mapper = defaultObjectMapper();
-        String reply;
-        try{
-            Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("127.0.0.1", 7890));
-            OkHttpClient client = defaultClient(apiKey,Duration.ofMinutes(1))
-                    .newBuilder()
-                    .proxy(proxy)
-                    .build();
-            Retrofit retrofit = defaultRetrofit(client, mapper);
-            OpenAiApi api = retrofit.create(OpenAiApi.class);
-            OpenAiService service = new OpenAiService(api);
-            ChatCompletionRequest completionRequest = ChatCompletionRequest.builder()
-                    .messages(chatMessageList)
-                    .model("gpt-3.5-turbo")
-                    .build();
-            List<ChatCompletionChoice> choices = service.createChatCompletion(completionRequest).getChoices();
-            reply = choices.get(0).getMessage().getContent();
-        }catch (Exception e){
-            e.printStackTrace();
-            reply = "系统异常，回答失败~~";
-        }
+        Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("127.0.0.1", 7890));
+        OkHttpClient client = defaultClient(apiKey,Duration.ofMinutes(1))
+                .newBuilder()
+                .proxy(proxy)
+                .build();
+        Retrofit retrofit = defaultRetrofit(client, mapper);
+        OpenAiApi api = retrofit.create(OpenAiApi.class);
+        OpenAiService service = new OpenAiService(api);
+        ChatCompletionRequest completionRequest = ChatCompletionRequest.builder()
+                .messages(chatMessageList)
+                .model("gpt-3.5-turbo")
+                .build();
+        List<ChatCompletionChoice> choices = service.createChatCompletion(completionRequest).getChoices();
+        String reply = choices.get(0).getMessage().getContent();
 //        回复消息存入数据库
         Message message = new Message();
         message.setContent(reply);
@@ -77,7 +67,6 @@ public class ChatgptService {
         message.setUserId(7l);
         message.setCreateTime(LocalDateTime.now());
         messageMapper.insertMessage(message);
-        redisTemplate.delete(userId+"DontRepeatSend");
     }
     private List<ChatMessage> buildChatMessage(String message) {
         List<ChatMessage> chatMessageList = new ArrayList<>();
