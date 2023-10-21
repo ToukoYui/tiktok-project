@@ -67,5 +67,6 @@ tencentyun:
     bucket: douyin-1313537069 # 存储桶名
     secretId: ENC(Z3G9H2hwpdQMR1XbLcQxRr4T0wT8tVfBcUEhhP3PbBU41ODHLXu2hJ/y/95nKkrZ)
     secretKey: ENC(NAVTBxcwmDTcgKidk60YDWNh3t/OiaiuHJLVEshs+R8cFRsy1wFeRwBQ6LVEZ4rZ)
+
 chatgpt:
-  apikey: sk-
+  apikey: ENC(9PyZCNXDobFvOYB3LiPbg0a81DRidZoOxgjzsDXDILo9wdisypLNAVzL9PLiLpiaNuxHnzBh1GWnO1O1vDyCog==)

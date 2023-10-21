@@ -13,7 +13,7 @@ class ServiceMessageApplicationTests {
 
     @Test
     void contextLoads() {
-        chatgptService.send("你好");
+        chatgptService.send(1L,"你好");
     }
 
 
