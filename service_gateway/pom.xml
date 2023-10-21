@@ -7,7 +7,7 @@
         <artifactId>tiktok_project</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
-
+    <packaging>jar</packaging>
     <artifactId>service_gateway</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>service_gateway</name>
@@ -62,11 +62,6 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <!-- 指定该 Main Class 为全局的唯一入口 -->
-                    <mainClass>com.tiktok.service_gateway.ServiceGatewayApplication</mainClass>
-                    <layout>ZIP</layout>
-                </configuration>
                 <executions>
                     <execution>
                         <goals>
