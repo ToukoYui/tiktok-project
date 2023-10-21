@@ -1,6 +1,25 @@
 # tiktok-project
 仿抖音项目-Java重写版
 
+### 服务部署：
+
+|          服务名称          |      英文名      |   端口号   |
+| :------------------------: | :--------------: | :--------: |
+|          网关服务          | service-gateway  |    8080    |
+|          用户服务          |   service-user   |    8021    |
+|          视频服务          |   service-feed   |    8022    |
+|          评论服务          | service-comment  |    8023    |
+|          点赞服务          | service-favorite |    8024    |
+|          关注服务          | service-relation |    8025    |
+|   聊天服务1（基于轮询）    | service-message  |    8026    |
+| 聊天服务2（基于websocket） |   service-chat   |    8027    |
+|           数据库           |      mysql       |    3306    |
+|            缓存            |      redis       |    6379    |
+|          注册中心          |      nacos       |    8848    |
+|          消息队列          |     rabbitmq     | 5672,15672 |
+
+
+
 ### 链路追踪：
 
 由于是微服务架构，存在一个功能的实现需要多个服务间相互调用，为了能明确一个功能的服务调用流程，我们使用基于jaeger依赖的链路追踪
