@@ -10,5 +10,9 @@ ADD /target/service_comment-0.0.1-SNAPSHOT.jar .
 # 暴露端口
 EXPOSE 8023
 
+# 设置环境变量
+ARG MY_ENV_VAR
+ENV DouyinSecretKey=$MY_ENV_VAR
+
 # 容器运行时的启动命令
 ENTRYPOINT ["java","-jar","/app/service_comment-0.0.1-SNAPSHOT.jar"]

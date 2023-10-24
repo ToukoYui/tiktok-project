@@ -7,6 +7,10 @@ WORKDIR /app
 # 将jar服务包复制到进行的当前工作目录中
 ADD /target/service_user-0.0.1-SNAPSHOT.jar .
 
+# 设置环境变量
+ARG MY_ENV_VAR
+ENV DouyinSecretKey=$MY_ENV_VAR
+
 # 暴露端口
 EXPOSE 8021
 
