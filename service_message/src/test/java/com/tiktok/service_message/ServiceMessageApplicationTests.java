@@ -19,4 +19,9 @@ public class ServiceMessageApplicationTests {
     void test(){
         chatgptService.send(6l,"你好");
     }
+
+    @Test
+    void test2(){
+
+    }
 }
