@@ -11,6 +11,10 @@ ADD /target/service_user-0.0.1-SNAPSHOT.jar .
 ARG MY_ENV_VAR
 ENV DouyinSecretKey=$MY_ENV_VAR
 
+# 设置时区
+RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+RUN echo 'Asia/Shanghai' > /etc/timezone
+
 # 暴露端口
 EXPOSE 8021
 

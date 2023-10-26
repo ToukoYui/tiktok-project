@@ -14,5 +14,9 @@ EXPOSE 8026
 ARG MY_ENV_VAR
 ENV DouyinSecretKey=$MY_ENV_VAR
 
+# 设置时区
+RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+RUN echo 'Asia/Shanghai' > /etc/timezone
+
 # 容器运行时的启动命令
 ENTRYPOINT ["java","-jar","/app/service_message-0.0.1-SNAPSHOT.jar"]
