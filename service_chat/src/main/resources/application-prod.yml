@@ -1,5 +1,5 @@
 server:
-  port: 8027
+  port: 8088
   servlet:
     context-path: /douyin #request prefix
   max-http-header-size: 20480
@@ -10,7 +10,7 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://114.132.160.52:3306/chat_test?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://114.132.160.52:3306/db_douyin?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
     type: com.alibaba.druid.pool.DruidDataSource
     username: ENC(5Ev24JNagGONP1Ca9+xZWg==)
     password: ENC(lQ3mg76A7j6WOm/j8zQ5dyfaDa06L4FX)
