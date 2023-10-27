@@ -3,13 +3,11 @@ package com.tiktok.service_user.service;
 import cn.hutool.core.bean.BeanUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.tiktok.common_util.utils.JjwtUtil;
-import com.tiktok.feign_util.utils.LikeFeignClient;
-import com.tiktok.feign_util.utils.RelationFeignClient;
-import com.tiktok.feign_util.utils.VideoFeignClient;
 import com.tiktok.model.vo.user.UserVo;
 import com.tiktok.service_user.mapper.UserMapper;
 import com.tiktok.model.entity.user.User;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -18,7 +16,6 @@ import org.springframework.util.StringUtils;
 import com.tiktok.model.vo.user.UserLoginResp;
 import com.tiktok.model.vo.user.UserRegisterResp;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -38,13 +35,8 @@ public class UserService {
     private AsyncService asyncService;
 
     private CountDownLatch countDownLatch; // 阻塞计数器
+    private static final String slat = "tiktok!@#";
 
-    @Autowired
-    private VideoFeignClient videoFeignClient;
-    @Autowired
-    private LikeFeignClient likeFeignClient;
-    @Autowired
-    private RelationFeignClient relationFeignClient;
 
     /**
      * 用户注册功能
@@ -57,6 +49,7 @@ public class UserService {
         UserRegisterResp userRegisterResp = new UserRegisterResp();
         // 输入信息非空则进行注册
         if (!StringUtils.isEmpty(username) && !StringUtils.isEmpty(password)) {
+            password = DigestUtils.md5Hex(password+slat);
             // 查询用户
             User user = userMapper.selectByUserNameAndPassword(username, password);
             if (user == null) {
@@ -105,10 +98,8 @@ public class UserService {
             userLoginResp.setStatusCode(401);
         } else {
             // 查询用户
+            password = DigestUtils.md5Hex(password+slat);
             User user = userMapper.selectByUserNameAndPassword(username, password);
-            if (user.getId() == 7){
-                return new UserLoginResp(444,"你登陆尼玛gpt账号呢？",null,null);
-            }
             if (user != null) {
                 // 查找到用户则生成一个token并返回给客户端
                 userLoginResp.setUserId(user.getId());
