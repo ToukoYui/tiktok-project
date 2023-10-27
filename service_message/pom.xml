@@ -67,6 +67,11 @@
         </dependency>
         <dependency>
             <groupId>com.alibaba</groupId>
+            <artifactId>druid-spring-boot-starter</artifactId>
+            <version>1.2.11</version>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
         </dependency>
         <!--链路追踪-->
@@ -104,7 +109,6 @@
             <artifactId>service</artifactId>
             <version>0.16.0</version>
         </dependency>
-
     </dependencies>
     <build>
         <plugins>

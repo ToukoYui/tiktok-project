@@ -11,7 +11,7 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://127.0.0.1:3306/db_douyin?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
-    #    type: com.alibaba.druid.pool.DruidDataSource
+    type: com.alibaba.druid.pool.DruidDataSource
     username: root
 #    password:
     hikari:
@@ -76,7 +76,7 @@ opentracing:
   jaeger:
     enabled: true
     http-sender:
-      url: http://8.134.208.93:14268/api/traces
+      url: http://114.132.160.52:14268/api/traces
 #    udp-sender:
-#      host: 8.134.208.93
+#      host: 114.132.160.52
 #      port: 6831
