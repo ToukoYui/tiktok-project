@@ -1,11 +1,12 @@
 package com.tiktok.service_user.controller;
 
 import com.tiktok.model.anno.TokenAuthAnno;
-import com.tiktok.model.vo.TokenAuthSuccess;
+import com.tiktok.model.vo.TokenToUserId;
 import com.tiktok.service_user.config.TokenBacketLimiter;
 import com.tiktok.service_user.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
 import com.tiktok.model.vo.user.UserLoginResp;
 import com.tiktok.model.vo.user.UserRegisterResp;
@@ -21,6 +22,8 @@ import java.util.List;
 public class UserController {
     @Autowired
     private UserService userService;
+    @Autowired
+    private StringRedisTemplate redisTemplate;
 
     @PostMapping("/register")
     public UserRegisterResp userRegister(String username, String password) {
@@ -43,14 +46,10 @@ public class UserController {
      * 修改时,先修改数据库,再删除缓存
      *
      * @param userId
-     * @param tokenAuthSuccess
      * @return
      */
     @GetMapping
-    public UserResp userInfo(@RequestParam("user_id") Long userId, @TokenAuthAnno TokenAuthSuccess tokenAuthSuccess) {
-        if (tokenAuthSuccess == null) {
-            return new UserResp("403", "token错误，禁止访问", null);
-        }
+    public UserResp getUserInfo(@RequestParam("user_id") Long userId) {
         UserVo userVo = userService.getUserInfo(userId);
         // 获取不到user,说明userId有误
         if (userVo.getUsername() == null) {
@@ -86,6 +85,8 @@ public class UserController {
 
     @GetMapping("/logout")
     public UserResp userLogout(NativeWebRequest nativeWebRequest) {
+        //退出登录需要删除视频缓存
+        redisTemplate.delete("videolist:public");
         return new UserResp("0", "注销成功", null);
     }
 

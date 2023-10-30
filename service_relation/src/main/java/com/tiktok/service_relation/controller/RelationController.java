@@ -1,7 +1,7 @@
 package com.tiktok.service_relation.controller;
 
 import com.tiktok.model.anno.TokenAuthAnno;
-import com.tiktok.model.vo.TokenAuthSuccess;
+import com.tiktok.model.vo.TokenToUserId;
 import com.tiktok.model.vo.relation.MutualFollowResp;
 import com.tiktok.model.vo.relation.RelationResp;
 import com.tiktok.service_relation.mapper.RelationMapper;
@@ -24,15 +24,11 @@ public class RelationController {
      *
      * @param toUserId
      * @param actionType
-     * @param tokenAuthSuccess
      * @return
      */
     @PostMapping("/action")
-    public RelationResp relate(@RequestParam("to_user_id") Long toUserId, @RequestParam("action_type") String actionType, @TokenAuthAnno TokenAuthSuccess tokenAuthSuccess) {
-        if (tokenAuthSuccess == null || !tokenAuthSuccess.getIsSuccess()) {
-            return new RelationResp("500", "请先登录哦~", null);
-        }
-        return relationService.related(toUserId, actionType, tokenAuthSuccess);
+    public RelationResp relate(@RequestParam("to_user_id") Long toUserId, @RequestParam("action_type") String actionType, @TokenAuthAnno TokenToUserId tokenToUserId) {
+        return relationService.related(toUserId, actionType, tokenToUserId);
     }
 
 
@@ -40,15 +36,11 @@ public class RelationController {
      * 登录用户关注的所有用户列表
      *
      * @param userId
-     * @param tokenAuthSuccess
      * @return
      */
     @GetMapping("/follow/list")
-    public RelationResp getRelatedUserList(@RequestParam("user_id") Long userId, @TokenAuthAnno TokenAuthSuccess tokenAuthSuccess) {
-        if (tokenAuthSuccess == null || !tokenAuthSuccess.getIsSuccess()) {
-            return new RelationResp("500", "请先登录哦~", null);
-        }
-        return relationService.getRelatedUserList(userId,tokenAuthSuccess);
+    public RelationResp getRelatedUserList(@RequestParam("user_id") Long userId, @TokenAuthAnno TokenToUserId tokenToUserId) {
+        return relationService.getRelatedUserList(userId,tokenToUserId);
     }
 
 
@@ -56,15 +48,11 @@ public class RelationController {
      * 所有关注登录用户的粉丝列表
      *
      * @param userId
-     * @param tokenAuthSuccess
      * @return
      */
     @GetMapping("/follower/list")
-    public RelationResp getFollowerList(@RequestParam("user_id") Long userId, @TokenAuthAnno TokenAuthSuccess tokenAuthSuccess) {
-        if (tokenAuthSuccess == null || !tokenAuthSuccess.getIsSuccess()) {
-            return new RelationResp("500", "请先登录哦~", null);
-        }
-        return relationService.getFollowerList(userId,tokenAuthSuccess);
+    public RelationResp getFollowerList(@RequestParam("user_id") Long userId, @TokenAuthAnno TokenToUserId tokenToUserId) {
+        return relationService.getFollowerList(userId,tokenToUserId);
     }
 
 
@@ -72,14 +60,10 @@ public class RelationController {
      * 互相关注的用户列表
      *
      * @param userId
-     * @param tokenAuthSuccess
      * @return
      */
     @GetMapping("/friend/list")
-    public MutualFollowResp getFriendUserList(@RequestParam("user_id") Long userId, @TokenAuthAnno TokenAuthSuccess tokenAuthSuccess) {
-        if (tokenAuthSuccess == null || !tokenAuthSuccess.getIsSuccess()) {
-            return new MutualFollowResp("500", "请先登录哦~", null);
-        }
+    public MutualFollowResp getFriendUserList(@RequestParam("user_id") Long userId) {
         return relationService.getFriendUserList(userId);
     }
 

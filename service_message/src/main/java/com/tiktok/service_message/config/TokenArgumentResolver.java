@@ -3,7 +3,7 @@ package com.tiktok.service_message.config;
 import com.tiktok.common_util.utils.JjwtUtil;
 import com.tiktok.model.anno.OptionalParamAnno;
 import com.tiktok.model.anno.TokenAuthAnno;
-import com.tiktok.model.vo.TokenAuthSuccess;
+import com.tiktok.model.vo.TokenToUserId;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
@@ -31,25 +31,20 @@ public class TokenArgumentResolver implements HandlerMethodArgumentResolver {
     public Object resolveArgument(MethodParameter methodParameter,
                                   ModelAndViewContainer modelAndViewContainer,
                                   NativeWebRequest nativeWebRequest,
-                                  WebDataBinderFactory webDataBinderFactory) throws Exception {
-        try{
+                                  WebDataBinderFactory webDataBinderFactory) {
+        try {
             HttpServletRequest request = nativeWebRequest.getNativeRequest(HttpServletRequest.class);
             log.info("前端请求路径--------->" + request.getRequestURL());
             // 拿到请求的token参数
             String token = request.getParameter("token");
-            if (token == null){
-                log.info("前端请求携带的Token为空");
-                return new TokenAuthSuccess(null,null,false);
-            }
-
             log.info("前端请求携带的Token---------->" + token);
-            String userIdByJjwt = JjwtUtil.getUserId(token).toString();
-            log.info("解析前端Token获取到的用户ID----------->"+userIdByJjwt);
+            Long userIdByJjwt = JjwtUtil.getUserId(token);
+            log.info("解析前端Token获取到的用户ID----------->" + userIdByJjwt);
             log.info("token认证通过，允许后续请求处理");
-            return new TokenAuthSuccess(userIdByJjwt,token,true);
-        }catch (Exception e){
+            return new TokenToUserId(userIdByJjwt);
+        } catch (Exception e) {
             log.error("Token解析异常----------->" + e.getMessage());
+            return new TokenToUserId(null);
         }
-        return null;
     }
 }

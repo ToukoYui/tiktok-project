@@ -1,7 +1,7 @@
 package com.tiktok.service_favorite.service;
 
 import com.tiktok.feign_util.utils.VideoFeignClient;
-import com.tiktok.model.vo.TokenAuthSuccess;
+import com.tiktok.model.vo.TokenToUserId;
 import com.tiktok.model.vo.favorite.FavoriteResp;
 import com.tiktok.model.vo.video.VideoVo;
 import com.tiktok.service_favorite.mapper.LikesMapper;
@@ -27,20 +27,19 @@ public class LikesService {
     @Autowired
     private VideoFeignClient videoFeignClient;
     @Transactional
-    public FavoriteResp liked(Long videoId, String actionType, TokenAuthSuccess authSuccess) {
-        String userId = authSuccess.getUserId();
+    public FavoriteResp liked(Long videoId, String actionType, Long userId) {
         try {
             //查询用户是否点赞过该视频
-            Integer count = likesMapper.selectIsLiked(Long.valueOf(userId), videoId);
+            Integer count = likesMapper.selectIsLiked(userId, videoId);
             if (count == 0) {
                 //未点赞过，添加新的点赞记录
-                likesMapper.insertFavorite(videoId, 1, Long.valueOf(userId));
+                likesMapper.insertFavorite(videoId, 1, userId);
             } else {
                 //点赞过，修改是否点赞即可
                 if (actionType.equals("1")) {
-                    likesMapper.updateFavorite(videoId, 1, Long.valueOf(userId));
+                    likesMapper.updateFavorite(videoId, 1,userId);
                 } else {
-                    likesMapper.updateFavorite(videoId, 0, Long.valueOf(userId));
+                    likesMapper.updateFavorite(videoId, 0, userId);
                 }
             }
         } catch (Exception e) {

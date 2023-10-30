@@ -27,7 +27,6 @@
             <artifactId>mybatis-spring-boot-starter</artifactId>
             <version>2.3.0</version>
         </dependency>
-
         <!--hutool-->
         <dependency>
             <groupId>cn.hutool</groupId>

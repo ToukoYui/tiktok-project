@@ -1,28 +1,20 @@
 package com.tiktok.service_comment.service;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.tiktok.common_util.utils.JjwtUtil;
 import com.tiktok.feign_util.utils.UserFeignClient;
 import com.tiktok.model.entity.comment.Comment;
-import com.tiktok.model.vo.TokenAuthSuccess;
 import com.tiktok.model.vo.comment.CommentVo;
 import com.tiktok.model.vo.user.UserVo;
-import com.tiktok.model.vo.video.VideoVo;
 import com.tiktok.service_comment.mapper.CommentMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -51,15 +43,12 @@ public class CommentService {
      * 写操作：先写数据库，然后再删除缓存
      * 读操作：缓存命中则直接返回
      * 缓存未命中则查询数据库，并写入缓存，设定超时时间
-     *
-     * @param tokenAuthSuccess
+     * @param userId
      * @param videoId
      * @param commentText
      */
-    public CommentVo publishComment(TokenAuthSuccess tokenAuthSuccess, Long videoId, String commentText) {
-        // 获取当前登录用户id
-        String token = tokenAuthSuccess.getToken();
-        Long userId = JjwtUtil.getUserId(token);
+    public CommentVo publishComment(Long userId, Long videoId, String commentText) {
+
         // 获取当前日期 mm-dd
         long current = System.currentTimeMillis();
         Date currentDate = new Date(current);
@@ -90,11 +79,11 @@ public class CommentService {
     /**
      * 获取该视频的评论列表
      *
-     * @param tokenAuthSuccess
+     *
      * @param videoId
      * @return
      */
-    public List<CommentVo> getCommentList(TokenAuthSuccess tokenAuthSuccess, Long videoId, Long start, Long end) {
+    public List<CommentVo> getCommentList(Long videoId, Long start, Long end) {
         // 查询redis中是否有缓存
         String key = "comment:" + videoId + ":commentIdList:" + "index-" + start + "_" + end; // "comment:1:commentIdList:index-0_299“
         // 先拿前300条

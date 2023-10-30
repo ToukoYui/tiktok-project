@@ -2,11 +2,8 @@ package com.tiktok.service_comment;
 
 import com.tiktok.feign_util.utils.UserFeignClient;
 import com.tiktok.model.entity.comment.Comment;
-import com.tiktok.model.vo.TokenAuthSuccess;
-import com.tiktok.model.vo.user.UserResp;
 import com.tiktok.model.vo.user.UserVo;
 import com.tiktok.service_comment.mapper.CommentMapper;
-import com.tiktok.service_comment.service.CommentService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
