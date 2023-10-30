@@ -12,7 +12,7 @@
 |          点赞服务          | service-favorite |    8024    |
 |          关注服务          | service-relation |    8025    |
 |   聊天服务1（基于轮询）    | service-message  |    8026    |
-| 聊天服务2（基于websocket） |   service-chat   |    8027    |
+| 聊天服务2（基于websocket） |   service-chat   |    8088    |
 |           数据库           |      mysql       |    3306    |
 |            缓存            |      redis       |    6379    |
 |          注册中心          |      nacos       |    8848    |
@@ -117,7 +117,7 @@
 
 #### 1.WebSocket
 
-**使用：**启动后访问http://localhost:8027/page/login.html进行用户名设置即可使用
+**使用：**启动后访问http://114.132.160.52:8088/douyin/page/login.html进行用户名设置即可使用
 
 #### 发送消息、接收消息、展示消息：
 采用websocket的方式监听session中的用户，以及客户端发送的消息，对消息进行异步转发给各个客户端到前端展示消息，任何用户
