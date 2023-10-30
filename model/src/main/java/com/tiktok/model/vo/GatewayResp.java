@@ -7,9 +7,7 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class GatewayResp {
-    @JsonProperty("status_code")
-    private String statusCode;
+    private String status_code;
 
-    @JsonProperty("status_msg")
-    private String statusMsg;
+    private String status_msg;
 }

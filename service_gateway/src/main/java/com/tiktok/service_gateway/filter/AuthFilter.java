@@ -46,16 +46,16 @@ public class AuthFilter implements GlobalFilter{
         System.out.println(token);
         if (StringUtils.isEmpty(token)) {
             //响应中放入返回的状态吗, 没有权限访问
-            GatewayResp resp = new GatewayResp("401", "请先登录哦~");
+            GatewayResp resp = new GatewayResp("1", "请先登录哦~");
             response.setStatusCode(HttpStatus.UNAUTHORIZED);
             DataBufferFactory bufferFactory = response.bufferFactory();
             DataBuffer wrap = bufferFactory.wrap(JSON.toJSONBytes(resp));
+            response.getHeaders().set("content-type","application/json");
             return response.writeWith(Mono.fromSupplier(() -> wrap));
         }
         try {
             JjwtUtil.getUserId(token);
         }catch (Exception e){
-            e.printStackTrace();
             response.setStatusCode(HttpStatus.UNAUTHORIZED);
             return response.setComplete();
         }

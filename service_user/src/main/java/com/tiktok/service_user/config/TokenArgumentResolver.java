@@ -1,5 +1,6 @@
 package com.tiktok.service_user.config;
 
+import com.tiktok.common_util.constant.ParamConstant;
 import com.tiktok.common_util.utils.JjwtUtil;
 import com.tiktok.model.anno.OptionalParamAnno;
 import com.tiktok.model.anno.TokenAuthAnno;
@@ -41,11 +42,10 @@ public class TokenArgumentResolver implements HandlerMethodArgumentResolver {
             HttpServletRequest request = nativeWebRequest.getNativeRequest(HttpServletRequest.class);
             log.info("前端请求路径--------->" + request.getRequestURL());
             // 拿到请求的token参数
-            String token = request.getParameter("token");
+            String token = request.getParameter(ParamConstant.TOKEN);
             log.info("前端请求携带的Token---------->" + token);
             Long userIdByJjwt = JjwtUtil.getUserId(token);
             log.info("解析前端Token获取到的用户ID----------->"+userIdByJjwt);
-            log.info("token认证通过，允许后续请求处理");
             return new TokenToUserId(userIdByJjwt);
         }catch (Exception e){
             log.error("Token解析异常----------->" + e.getMessage());
