@@ -11,7 +11,7 @@ import java.util.List;
 public interface VideoMapper {
     List<Video> getVideoList(String lastTime);
 
-    List<Video> selectVideoByUserId(@Param("id") String id);
+    List<Video> selectVideoByUserId(@Param("id") Long id);
 
     void insertVideo(Video video);
 

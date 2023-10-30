@@ -4,7 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import com.tiktok.feign_util.utils.MessageFeignClient;
 import com.tiktok.feign_util.utils.UserFeignClient;
 import com.tiktok.model.entity.message.LatestMsg;
-import com.tiktok.model.vo.TokenAuthSuccess;
+import com.tiktok.model.vo.TokenToUserId;
 import com.tiktok.model.vo.relation.MutualFollowResp;
 import com.tiktok.model.vo.relation.RelationResp;
 import com.tiktok.model.vo.user.FriendUser;
@@ -63,10 +63,10 @@ public class RelationService {
         UNFOLLOW_SCRIPT.setResultType(Long.class);
     }
 
-    public RelationResp related(Long toUserId, String actionType, TokenAuthSuccess tokenAuthSuccess) {
+    public RelationResp related(Long toUserId, String actionType, TokenToUserId tokenToUserId) {
         try {
-            String userId = tokenAuthSuccess.getUserId();
-            if (toUserId.equals(Long.valueOf(userId))) {
+            Long userId = tokenToUserId.getUserId();
+            if (toUserId == userId) {
                 return new RelationResp("400", "你不能对自己进行此操作哦~", null);
             }
             // 当前用户的关注者id列表
@@ -77,13 +77,13 @@ public class RelationService {
             Integer count = relationMapper.selectIsRelated(Long.valueOf(userId), toUserId);
             if (count == 0) {
                 // 未关注该用户,添加新的关注
-                relationMapper.insertRelate(Long.valueOf(userId), toUserId, 1);
+                relationMapper.insertRelate(userId, toUserId, 1);
                 // 执行lua脚本,保证原子性操作
-                Long r = executeFollowScript(userId, toUserId.toString());
+                Long r = executeFollowScript(userId, toUserId);
                 if (r.intValue() != 0) {
                     // 手动回滚
                     relationMapper.updateRelated(Long.valueOf(userId), toUserId, 0);
-                    followExceptionHandling(r, userId, toUserId.toString());
+                    followExceptionHandling(r, userId, toUserId);
                     return new RelationResp("500", "服务器异常哦~", null);
                 }
             } else {
@@ -92,21 +92,21 @@ public class RelationService {
                     relationMapper.updateRelated(Long.valueOf(userId), toUserId, 1);
                     // 将该用户id存入redis中
                     // set中值是不能重复的,如果添加相同元素,会添加失败
-                    Long r = executeFollowScript(userId, toUserId.toString());
+                    Long r = executeFollowScript(userId, toUserId);
                     if (r.intValue() != 0) {
                         // 手动回滚
                         relationMapper.updateRelated(Long.valueOf(userId), toUserId, 0);
-                        followExceptionHandling(r, userId, toUserId.toString());
+                        followExceptionHandling(r, userId, toUserId);
                         return new RelationResp("500", "服务器异常哦~", null);
                     }
                 } else {
                     relationMapper.updateRelated(Long.valueOf(userId), toUserId, 0);
                     // 从redis中删除
-                    Long r = executeUnFollowScript(userId, toUserId.toString());
+                    Long r = executeUnFollowScript(userId, toUserId);
                     if (r.intValue() != 0) {
                         // 手动回滚
                         relationMapper.updateRelated(Long.valueOf(userId), toUserId, 1);
-                        UnfollowExceptionHandling(r, userId, toUserId.toString());
+                        UnfollowExceptionHandling(r, userId, toUserId);
                         return new RelationResp("500", "服务器异常哦~", null);
                     }
                 }
@@ -125,7 +125,7 @@ public class RelationService {
 
 
     // 关注lua
-    public Long executeFollowScript(String userId, String toUserId) {
+    public Long executeFollowScript(Long userId, Long toUserId) {
         Long r = stringRedisTemplate.execute(
                 FOLLOW_SCRIPT,
                 Collections.emptyList(),
@@ -135,7 +135,7 @@ public class RelationService {
     }
 
     // 取消关注lua
-    public Long executeUnFollowScript(String userId, String toUserId) {
+    public Long executeUnFollowScript(Long userId, Long toUserId) {
         Long r = stringRedisTemplate.execute(
                 UNFOLLOW_SCRIPT,
                 Collections.emptyList(),
@@ -145,7 +145,7 @@ public class RelationService {
     }
 
     // lua脚本执行异常处理
-    public void followExceptionHandling(Long r, String userId, String toUserId) {
+    public void followExceptionHandling(Long r, Long userId, Long toUserId) {
         if (r.intValue() == 2) {
             // 第二个命令执行异常
             // 回滚第一个命令
@@ -154,16 +154,16 @@ public class RelationService {
     }
 
     // lua脚本执行异常处理
-    public void UnfollowExceptionHandling(Long r, String userId, String toUserId) {
+    public void UnfollowExceptionHandling(Long r, Long userId, Long toUserId) {
         if (r.intValue() == 2) {
             // 第二个命令执行异常
             // 回滚第一个命令
-            stringRedisTemplate.opsForSet().add("followUserIds:" + userId, toUserId);
+            stringRedisTemplate.opsForSet().add("followUserIds:" + userId.toString(), toUserId.toString());
         }
     }
 
 
-    public RelationResp getRelatedUserList(Long userId, TokenAuthSuccess tokenAuthSuccess) {
+    public RelationResp getRelatedUserList(Long userId, TokenToUserId tokenToUserId) {
         // 查询缓存中是否存在
         String key = "followUser:" + userId;
         String idKey = "followUserIds:" + userId;
@@ -189,7 +189,7 @@ public class RelationService {
         }
 
         // 根据用户id列表获取关注用户详情列表
-        List<UserVo> userInfoList = userFeignClient.getUserInfoList(userIdList, Long.valueOf(tokenAuthSuccess.getUserId()));
+        List<UserVo> userInfoList = userFeignClient.getUserInfoList(userIdList, tokenToUserId.getUserId());
         // 存入redis中
         redisTemplate.opsForValue().set(key, userInfoList, 2, TimeUnit.HOURS);
         // id列表也存入redis中
@@ -201,7 +201,7 @@ public class RelationService {
     }
 
 
-    public RelationResp getFollowerList(Long userId, TokenAuthSuccess tokenAuthSuccess) {
+    public RelationResp getFollowerList(Long userId, TokenToUserId tokenToUserId) {
         // 查询缓存中是否存在
         String key = "follower:" + userId;
         String idKey = "followerIds:" + userId;
@@ -227,7 +227,7 @@ public class RelationService {
         }
 
         // 根据用户id列表获取粉丝用户详情列表
-        List<UserVo> userInfoList = userFeignClient.getUserInfoList(userIdList, Long.valueOf(tokenAuthSuccess.getUserId()));
+        List<UserVo> userInfoList = userFeignClient.getUserInfoList(userIdList, tokenToUserId.getUserId());
         // 存入redis中
         redisTemplate.opsForValue().set(key, userInfoList, 2, TimeUnit.HOURS);
         // 将id列表存入redis中

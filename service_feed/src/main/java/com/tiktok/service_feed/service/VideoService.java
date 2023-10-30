@@ -12,7 +12,7 @@ import com.tiktok.feign_util.utils.CommentFeignClient;
 import com.tiktok.feign_util.utils.LikeFeignClient;
 import com.tiktok.feign_util.utils.UserFeignClient;
 import com.tiktok.model.entity.video.Video;
-import com.tiktok.model.vo.TokenAuthSuccess;
+import com.tiktok.model.vo.TokenToUserId;
 import com.tiktok.model.vo.user.UserVo;
 import com.tiktok.model.vo.video.VideoVo;
 import com.tiktok.service_feed.config.OssPropertiesUtils;
@@ -66,7 +66,7 @@ public class VideoService {
             "rmvb", "swf", "asf", "m2ts", "f4v"
     };
 
-    public List<VideoVo> getVideoList(String lastTime, TokenAuthSuccess tokenAuthSuccess) {
+    public List<VideoVo> getVideoList(String lastTime, TokenToUserId tokenToUserId) {
         System.out.println("lastTime = " + lastTime);
         // 查询redis中是否有缓存
         // 这里直接public就好了,因为退出应用不代表用户就退出
@@ -80,7 +80,7 @@ public class VideoService {
         }
         int cul;
         boolean flag;
-        if (tokenAuthSuccess != null && tokenAuthSuccess.getIsSuccess()) {
+        if (tokenToUserId.getUserId() != null) {
             flag = true;
             cul = 5;
         } else {
@@ -100,7 +100,7 @@ public class VideoService {
                 // thread1.用户是否已点赞该视频 如果用户登录了才获取
                 Boolean isLike = null;
                 if (flag) {
-                    isLike = asyncService.getIsLikeByVideoIdAsync(countDownLatch, Long.valueOf(tokenAuthSuccess.getUserId()), video.getId());
+                    isLike = asyncService.getIsLikeByVideoIdAsync(countDownLatch, tokenToUserId.getUserId(), video.getId());
 
                 }
                 // thread2.获取投稿视频的作者信息
@@ -108,7 +108,7 @@ public class VideoService {
                 Boolean isFollowed = false;
                 if (flag ) {
                     // 用户是否已关注了该作者 如果用户登录了才获取
-                    isFollowed = asyncService.getIsFollowedByUserIdAsync(countDownLatch, Long.valueOf(tokenAuthSuccess.getUserId()), video.getUserId());
+                    isFollowed = asyncService.getIsFollowedByUserIdAsync(countDownLatch, tokenToUserId.getUserId(), video.getUserId());
                 }
                 UserVo authorInfo = asyncService.getAuthorInfoAsync(countDownLatch, video.getUserId());
 
@@ -160,7 +160,7 @@ public class VideoService {
     }
 
     // 上传文件到腾讯云后返回该存储文件的url
-    public String uploadVideo(MultipartFile multipartFile, String title, String userId) {
+    public String uploadVideo(MultipartFile multipartFile, String title, Long userId) {
         // 获取文件名及后缀
         String originalFilename = multipartFile.getOriginalFilename();
         // 获取文件后缀
@@ -209,8 +209,7 @@ public class VideoService {
         return null;
     }
 
-    public List<VideoVo> getMyVideoList(TokenAuthSuccess tokenAuthSuccess) {
-        String userId = tokenAuthSuccess.getUserId();
+    public List<VideoVo> getMyVideoList(Long userId) {
         // 查询redis中是否有缓存
         String redisKey = "videolist:" + userId;
 
@@ -222,7 +221,7 @@ public class VideoService {
         }
         CountDownLatch countDownLatch = new CountDownLatch(2);
         // 获取当前登录用户的信息
-        UserVo userInfo = asyncService.getAuthorInfoAsync(countDownLatch, Long.valueOf(tokenAuthSuccess.getUserId()));
+        UserVo userInfo = asyncService.getAuthorInfoAsync(countDownLatch,userId);
         //获取当前用户的喜欢视频数
         Integer likeCountByUserId = asyncService.getLikeCountByUserIdAsync(countDownLatch, Long.valueOf(userId));
         // 根据当前用户id查找已发布的视频

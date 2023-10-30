@@ -9,9 +9,9 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.util.concurrent.ThreadPoolExecutor;
 
-@Configuration
-@EnableAsync
 @Data
+@EnableAsync
+@Configuration
 public class ThreadPoolConfig {
     @Value("${async.executor.thread.core_pool_size}")
     private int corePoolSize;

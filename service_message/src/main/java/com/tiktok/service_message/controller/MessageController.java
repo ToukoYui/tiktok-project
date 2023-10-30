@@ -1,16 +1,14 @@
 package com.tiktok.service_message.controller;
 
-import com.tiktok.common_util.utils.JjwtUtil;
 import com.tiktok.model.anno.TokenAuthAnno;
 import com.tiktok.model.entity.message.LatestMsg;
 import com.tiktok.model.entity.message.Message;
-import com.tiktok.model.vo.TokenAuthSuccess;
+import com.tiktok.model.vo.TokenToUserId;
 import com.tiktok.model.vo.message.MessageResp;
 import com.tiktok.model.vo.message.MessageVo;
 import com.tiktok.service_message.service.ChatgptService;
 import com.tiktok.service_message.service.MessageService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
@@ -35,17 +33,13 @@ public class MessageController {
      * 查询聊天记录
      *
      * @param toUserId
-     * @param tokenAuthSuccess
      * @return
      */
     @GetMapping("/chat")
-    public MessageResp getMessageList(@RequestParam("to_user_id") Long toUserId, @RequestParam("pre_msg_time") Long preMsgTime, @TokenAuthAnno TokenAuthSuccess tokenAuthSuccess) {
-        if (tokenAuthSuccess == null || !tokenAuthSuccess.getIsSuccess()) {
-            return new MessageResp("401", "请先登录哦~", null);
-        }
+    public MessageResp getMessageList(@RequestParam("to_user_id") Long toUserId, @RequestParam("pre_msg_time") Long preMsgTime, @TokenAuthAnno TokenToUserId tokenToUserId) {
         log.info("前端传来的时间戳------------------>" + preMsgTime);
         LocalDateTime preTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(preMsgTime), ZoneId.systemDefault());
-        Long userId = Long.valueOf(tokenAuthSuccess.getUserId());
+        Long userId = Long.valueOf(tokenToUserId.getUserId());
         if (preMsgTime.equals(0L)) {
             preTime = null;
         }
@@ -70,12 +64,9 @@ public class MessageController {
     @Autowired
     private ChatgptService chatgptService;
     @PostMapping("/action")
-    public MessageResp sendMessage(@RequestParam("to_user_id") Long toUserId, String content, @TokenAuthAnno TokenAuthSuccess tokenAuthSuccess) {
-        if (tokenAuthSuccess == null || !tokenAuthSuccess.getIsSuccess()) {
-            return new MessageResp("401", "请先登录哦~", null);
-        }
+    public MessageResp sendMessage(@RequestParam("to_user_id") Long toUserId, String content, @TokenAuthAnno TokenToUserId tokenToUserId) {
         try {
-            Long userId = Long.valueOf(tokenAuthSuccess.getUserId());
+            Long userId = tokenToUserId.getUserId();
             Message message = new Message();
             message.setContent(content);
             message.setUserId(userId);
