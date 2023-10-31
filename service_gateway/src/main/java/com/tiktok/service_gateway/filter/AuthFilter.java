@@ -10,6 +10,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
@@ -31,7 +32,7 @@ public class AuthFilter implements GlobalFilter{
     @Autowired
     private Pattern pattern;
     @Override
-    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain){
         ServerHttpRequest request = exchange.getRequest();
         ServerHttpResponse response = exchange.getResponse();
         MultiValueMap<String, String> queryParams = request.getQueryParams();
@@ -44,21 +45,25 @@ public class AuthFilter implements GlobalFilter{
         }
         String token = queryParams.getFirst("token");
         System.out.println(token);
+        GatewayResp resp = new GatewayResp("401", "请先登录哦~");
         if (StringUtils.isEmpty(token)) {
             //响应中放入返回的状态吗, 没有权限访问
-            GatewayResp resp = new GatewayResp("1", "请先登录哦~");
             response.setStatusCode(HttpStatus.UNAUTHORIZED);
             DataBufferFactory bufferFactory = response.bufferFactory();
             DataBuffer wrap = bufferFactory.wrap(JSON.toJSONBytes(resp));
-            response.getHeaders().set("content-type","application/json");
+            response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
             return response.writeWith(Mono.fromSupplier(() -> wrap));
         }
         try {
             JjwtUtil.getUserId(token);
+            return chain.filter(exchange);
         }catch (Exception e){
+            //响应中放入返回的状态吗, 没有权限访问
             response.setStatusCode(HttpStatus.UNAUTHORIZED);
-            return response.setComplete();
+            DataBufferFactory bufferFactory = response.bufferFactory();
+            DataBuffer wrap = bufferFactory.wrap(JSON.toJSONBytes(resp));
+            response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+            return response.writeWith(Mono.fromSupplier(() -> wrap));
         }
-        return chain.filter(exchange);
     }
 }
