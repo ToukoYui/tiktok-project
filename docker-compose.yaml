@@ -1,0 +1,81 @@
+version: "3.5"
+services:
+  gateway:
+    image: gateway #构建出镜像的名称
+    build:
+      context: ./service_gateway #Dockerfile所在目录
+      args:
+        - MY_ENV_VAR=WuAndRin # 设置参数（环境变量）
+    container_name: service-gateway # 运行的容器名称
+    ports:
+      - "8020:8020" # 设置容器与宿主机的端口映射
+
+  user:
+    image: user
+    build:
+      context: ./service_user
+      args:
+        - MY_ENV_VAR=WuAndRin
+    container_name: service-user
+    ports:
+      - "8021:8021"
+
+  feed:
+    image: feed
+    build:
+      context: ./service_feed
+      args:
+        - MY_ENV_VAR=WuAndRin
+    container_name: service-feed
+    ports:
+      - "8022:8022"
+
+  comment:
+    image: comment
+    build:
+      context: ./service_comment
+      args:
+        - MY_ENV_VAR=WuAndRin
+    container_name: service-comment
+    ports:
+      - "8023:8023"
+
+  favorite:
+    image: favorite
+    build:
+      context: ./service_favorite
+      args:
+        - MY_ENV_VAR=WuAndRin
+    container_name: service-favorite
+    ports:
+      - "8024:8024"
+
+  relation:
+    image: relation
+    build:
+      context: ./service_relation
+      args:
+        - MY_ENV_VAR=WuAndRin
+    container_name: service-relation
+    ports:
+      - "8025:8025"
+
+  message:
+    image: message
+    build:
+      context: ./service_message
+      args:
+        - MY_ENV_VAR=WuAndRin
+    container_name: service-message
+    ports:
+      - "8026:8026"
+
+  chat:
+    image: chat
+    build:
+      context: ./service_chat
+      args:
+        - MY_ENV_VAR=WuAndRin
+    container_name: service-chat
+    ports:
+      - "8088:8088"
