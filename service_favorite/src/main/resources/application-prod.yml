@@ -34,7 +34,7 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: localhost:8848
+        server-addr: 114.132.160.52:8848
 
 feign:
   client:
