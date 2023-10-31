@@ -37,7 +37,6 @@ public class VideoController {
      */
     @GetMapping("/feed")
     public VideoResp getVideoList(@RequestParam("latest_time") String latestTimeStr,@TokenAuthAnno TokenToUserId tokenToUserId) {
-    public VideoResp getVideoList(@RequestParam("latest_time") String latestTimeStr, @TokenAuthAnno TokenAuthSuccess tokenAuthSuccess) {
         // 如果last_time为空则用当前时间字符串
         Timestamp timestamp = StringUtils.isEmpty(latestTimeStr) ?
                 new Timestamp(System.currentTimeMillis()) : new Timestamp(Long.parseLong(latestTimeStr));
@@ -45,7 +44,6 @@ public class VideoController {
         String lastTime = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(localDateTime);
         // 获取视频
         List<VideoVo> videoVoList = videoService.getVideoList(lastTime,tokenToUserId);
-        List<VideoVo> videoVoList = videoService.getVideoList(lastTime, tokenAuthSuccess);
         // 获取最早发布的视频的发布时间
         LocalDateTime nextTime = videoVoList.get(videoVoList.size() - 1).getCreatedTime();
         Integer nextTimeInt = Math.toIntExact(nextTime.toEpochSecond(ZoneOffset.of("+8")));
@@ -62,15 +60,8 @@ public class VideoController {
     @PostMapping("/publish/action")
     public PublishResp publishVideo(@TokenAuthAnno TokenToUserId tokenToUserId,@RequestParam("data") MultipartFile multipartFile, String title) {
         Long userId = tokenToUserId.getUserId();
-        String videoUrl = videoService.uploadVideo(multipartFile, title,userId);
-        if (StringUtils.isEmpty(videoUrl)) {
-            return new PublishResp(400, "视频发布失败");
-    public PublishResp publishVideo(@RequestParam("data") MultipartFile multipartFile, String title, @TokenAuthAnno TokenAuthSuccess tokenAuthSuccess) {
         try {
-            if (!tokenAuthSuccess.getIsSuccess()) {
-                return new PublishResp(403, "token错误，禁止访问");
-            }
-            String videoUrl = videoService.uploadVideo(multipartFile, title, tokenAuthSuccess.getUserId());
+            String videoUrl = videoService.uploadVideo(multipartFile, title, userId);
             if (StringUtils.isEmpty(videoUrl)) {
                 return new PublishResp(400, "视频发布失败");
             }
