@@ -7,7 +7,7 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class GatewayResp {
-    private String status_code;
+    private Integer status_code;
 
     private String status_msg;
 }
