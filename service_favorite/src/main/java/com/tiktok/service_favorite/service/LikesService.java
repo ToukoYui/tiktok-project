@@ -1,7 +1,6 @@
 package com.tiktok.service_favorite.service;
 
 import com.tiktok.feign_util.utils.VideoFeignClient;
-import com.tiktok.model.vo.TokenToUserId;
 import com.tiktok.model.vo.favorite.FavoriteResp;
 import com.tiktok.model.vo.video.VideoVo;
 import com.tiktok.service_favorite.mapper.LikesMapper;

@@ -4,7 +4,6 @@ import com.tiktok.common_util.constant.ParamConstant;
 import com.tiktok.common_util.utils.JjwtUtil;
 import com.tiktok.model.anno.OptionalParamAnno;
 import com.tiktok.model.anno.TokenAuthAnno;
-import com.tiktok.model.vo.TokenToUserId;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
@@ -39,14 +38,14 @@ public class TokenArgumentResolver implements HandlerMethodArgumentResolver {
             // 拿到请求的token参数
             String token = request.getParameter(ParamConstant.TOKEN);
             if (token == null){
-                return new TokenToUserId(null);
+                return null;
             }
             log.info("前端请求携带的Token---------->" + token);
             Long userIdByJjwt = JjwtUtil.getUserId(token);
-            return new TokenToUserId(userIdByJjwt);
+            return userIdByJjwt;
         }catch (Exception e){
             log.error("Token解析异常----------->" + e.getMessage());
-            return new TokenToUserId(null);
+            return null;
         }
     }
 }

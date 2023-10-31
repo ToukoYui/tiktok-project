@@ -1,7 +1,5 @@
 package com.tiktok.service_user.controller;
 
-import com.tiktok.model.anno.TokenAuthAnno;
-import com.tiktok.model.vo.TokenToUserId;
 import com.tiktok.service_user.config.TokenBacketLimiter;
 import com.tiktok.service_user.service.UserService;
 import lombok.extern.slf4j.Slf4j;

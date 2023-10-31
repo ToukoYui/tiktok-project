@@ -4,7 +4,6 @@ import cn.hutool.core.bean.BeanUtil;
 import com.tiktok.feign_util.utils.MessageFeignClient;
 import com.tiktok.feign_util.utils.UserFeignClient;
 import com.tiktok.model.entity.message.LatestMsg;
-import com.tiktok.model.vo.TokenToUserId;
 import com.tiktok.model.vo.relation.MutualFollowResp;
 import com.tiktok.model.vo.relation.RelationResp;
 import com.tiktok.model.vo.user.FriendUser;
@@ -63,9 +62,8 @@ public class RelationService {
         UNFOLLOW_SCRIPT.setResultType(Long.class);
     }
 
-    public RelationResp related(Long toUserId, String actionType, TokenToUserId tokenToUserId) {
+    public RelationResp related(Long toUserId, String actionType, Long userId) {
         try {
-            Long userId = tokenToUserId.getUserId();
             if (toUserId == userId) {
                 return new RelationResp("400", "你不能对自己进行此操作哦~", null);
             }
@@ -163,7 +161,7 @@ public class RelationService {
     }
 
 
-    public RelationResp getRelatedUserList(Long userId, TokenToUserId tokenToUserId) {
+    public RelationResp getRelatedUserList(Long userId, Long tokenToUserId) {
         // 查询缓存中是否存在
         String key = "followUser:" + userId;
         String idKey = "followUserIds:" + userId;
@@ -189,7 +187,7 @@ public class RelationService {
         }
 
         // 根据用户id列表获取关注用户详情列表
-        List<UserVo> userInfoList = userFeignClient.getUserInfoList(userIdList, tokenToUserId.getUserId());
+        List<UserVo> userInfoList = userFeignClient.getUserInfoList(userIdList, tokenToUserId);
         // 存入redis中
         redisTemplate.opsForValue().set(key, userInfoList, 2, TimeUnit.HOURS);
         // id列表也存入redis中
@@ -201,7 +199,7 @@ public class RelationService {
     }
 
 
-    public RelationResp getFollowerList(Long userId, TokenToUserId tokenToUserId) {
+    public RelationResp getFollowerList(Long userId, Long tokenToUserId) {
         // 查询缓存中是否存在
         String key = "follower:" + userId;
         String idKey = "followerIds:" + userId;
@@ -227,7 +225,7 @@ public class RelationService {
         }
 
         // 根据用户id列表获取粉丝用户详情列表
-        List<UserVo> userInfoList = userFeignClient.getUserInfoList(userIdList, tokenToUserId.getUserId());
+        List<UserVo> userInfoList = userFeignClient.getUserInfoList(userIdList, tokenToUserId);
         // 存入redis中
         redisTemplate.opsForValue().set(key, userInfoList, 2, TimeUnit.HOURS);
         // 将id列表存入redis中

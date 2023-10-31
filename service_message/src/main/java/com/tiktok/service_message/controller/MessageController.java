@@ -3,7 +3,6 @@ package com.tiktok.service_message.controller;
 import com.tiktok.model.anno.TokenAuthAnno;
 import com.tiktok.model.entity.message.LatestMsg;
 import com.tiktok.model.entity.message.Message;
-import com.tiktok.model.vo.TokenToUserId;
 import com.tiktok.model.vo.message.MessageResp;
 import com.tiktok.model.vo.message.MessageVo;
 import com.tiktok.service_message.service.ChatgptService;
@@ -16,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,10 +34,9 @@ public class MessageController {
      * @return
      */
     @GetMapping("/chat")
-    public MessageResp getMessageList(@RequestParam("to_user_id") Long toUserId, @RequestParam("pre_msg_time") Long preMsgTime, @TokenAuthAnno TokenToUserId tokenToUserId) {
+    public MessageResp getMessageList(@RequestParam("to_user_id") Long toUserId, @RequestParam("pre_msg_time") Long preMsgTime, @TokenAuthAnno Long userId) {
         log.info("前端传来的时间戳------------------>" + preMsgTime);
         LocalDateTime preTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(preMsgTime), ZoneId.systemDefault());
-        Long userId = Long.valueOf(tokenToUserId.getUserId());
         if (preMsgTime.equals(0L)) {
             preTime = null;
         }
@@ -64,9 +61,8 @@ public class MessageController {
     @Autowired
     private ChatgptService chatgptService;
     @PostMapping("/action")
-    public MessageResp sendMessage(@RequestParam("to_user_id") Long toUserId, String content, @TokenAuthAnno TokenToUserId tokenToUserId) {
+    public MessageResp sendMessage(@RequestParam("to_user_id") Long toUserId, String content, @TokenAuthAnno Long userId) {
         try {
-            Long userId = tokenToUserId.getUserId();
             Message message = new Message();
             message.setContent(content);
             message.setUserId(userId);
