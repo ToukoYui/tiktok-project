@@ -12,7 +12,6 @@ import com.tiktok.feign_util.utils.CommentFeignClient;
 import com.tiktok.feign_util.utils.LikeFeignClient;
 import com.tiktok.feign_util.utils.UserFeignClient;
 import com.tiktok.model.entity.video.Video;
-import com.tiktok.model.vo.TokenToUserId;
 import com.tiktok.model.vo.user.UserVo;
 import com.tiktok.model.vo.video.VideoVo;
 import com.tiktok.service_feed.config.OssPropertiesUtils;
@@ -66,7 +65,7 @@ public class VideoService {
             "rmvb", "swf", "asf", "m2ts", "f4v"
     };
 
-    public List<VideoVo> getVideoList(String lastTime, TokenToUserId tokenToUserId) {
+    public List<VideoVo> getVideoList(String lastTime, Long userId) {
         System.out.println("lastTime = " + lastTime);
         // 查询redis中是否有缓存
         // 这里直接public就好了,因为退出应用不代表用户就退出
@@ -80,7 +79,7 @@ public class VideoService {
         }
         int cul;
         boolean flag;
-        if (tokenToUserId.getUserId() != null) {
+        if (userId != null) {
             flag = true;
             cul = 5;
         } else {
@@ -100,7 +99,7 @@ public class VideoService {
                 // thread1.用户是否已点赞该视频 如果用户登录了才获取
                 Boolean isLike = null;
                 if (flag) {
-                    isLike = asyncService.getIsLikeByVideoIdAsync(countDownLatch, tokenToUserId.getUserId(), video.getId());
+                    isLike = asyncService.getIsLikeByVideoIdAsync(countDownLatch, userId, video.getId());
 
                 }
                 // thread2.获取投稿视频的作者信息
@@ -108,7 +107,7 @@ public class VideoService {
                 Boolean isFollowed = false;
                 if (flag ) {
                     // 用户是否已关注了该作者 如果用户登录了才获取
-                    isFollowed = asyncService.getIsFollowedByUserIdAsync(countDownLatch, tokenToUserId.getUserId(), video.getUserId());
+                    isFollowed = asyncService.getIsFollowedByUserIdAsync(countDownLatch, userId, video.getUserId());
                 }
                 UserVo authorInfo = asyncService.getAuthorInfoAsync(countDownLatch, video.getUserId());
 

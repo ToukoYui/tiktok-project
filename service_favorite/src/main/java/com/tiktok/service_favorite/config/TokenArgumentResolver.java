@@ -4,7 +4,6 @@ import com.tiktok.common_util.constant.ParamConstant;
 import com.tiktok.common_util.utils.JjwtUtil;
 import com.tiktok.model.anno.OptionalParamAnno;
 import com.tiktok.model.anno.TokenAuthAnno;
-import com.tiktok.model.vo.TokenToUserId;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
@@ -32,7 +31,7 @@ public class TokenArgumentResolver implements HandlerMethodArgumentResolver {
     public Object resolveArgument(MethodParameter methodParameter,
                                   ModelAndViewContainer modelAndViewContainer,
                                   NativeWebRequest nativeWebRequest,
-                                  WebDataBinderFactory webDataBinderFactory) throws Exception {
+                                  WebDataBinderFactory webDataBinderFactory){
         try{
             HttpServletRequest request = nativeWebRequest.getNativeRequest(HttpServletRequest.class);
             log.info("前端请求路径--------->" + request.getRequestURL());
@@ -40,10 +39,10 @@ public class TokenArgumentResolver implements HandlerMethodArgumentResolver {
             String token = request.getParameter(ParamConstant.TOKEN);
             log.info("前端请求携带的Token---------->" + token);
             Long userIdByJjwt = JjwtUtil.getUserId(token);
-            return new TokenToUserId(userIdByJjwt);
+            return userIdByJjwt;
         }catch (Exception e){
             log.error("Token解析异常----------->" + e.getMessage());
-            return new TokenToUserId(null);
+            return null;
         }
     }
 }

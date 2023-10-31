@@ -1,7 +1,6 @@
 package com.tiktok.service_favorite.controller;
 
 import com.tiktok.model.anno.TokenAuthAnno;
-import com.tiktok.model.vo.TokenToUserId;
 import com.tiktok.model.vo.favorite.FavoriteResp;
 import com.tiktok.service_favorite.mapper.LikesMapper;
 import com.tiktok.service_favorite.service.LikesService;
@@ -20,8 +19,7 @@ public class FavoriteController {
 
 
     @PostMapping("/action")
-    public FavoriteResp like(@RequestParam("video_id") Long videoId, @RequestParam("action_type") String actionType,@TokenAuthAnno TokenToUserId tokenToUserId) {
-        Long userId = tokenToUserId.getUserId();
+    public FavoriteResp like(@RequestParam("video_id") Long videoId, @RequestParam("action_type") String actionType,@TokenAuthAnno Long userId) {
         return likesService.liked(videoId, actionType, userId);
     }
     /**

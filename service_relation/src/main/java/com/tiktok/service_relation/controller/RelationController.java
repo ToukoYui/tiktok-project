@@ -1,7 +1,6 @@
 package com.tiktok.service_relation.controller;
 
 import com.tiktok.model.anno.TokenAuthAnno;
-import com.tiktok.model.vo.TokenToUserId;
 import com.tiktok.model.vo.relation.MutualFollowResp;
 import com.tiktok.model.vo.relation.RelationResp;
 import com.tiktok.service_relation.mapper.RelationMapper;
@@ -27,8 +26,8 @@ public class RelationController {
      * @return
      */
     @PostMapping("/action")
-    public RelationResp relate(@RequestParam("to_user_id") Long toUserId, @RequestParam("action_type") String actionType, @TokenAuthAnno TokenToUserId tokenToUserId) {
-        return relationService.related(toUserId, actionType, tokenToUserId);
+    public RelationResp relate(@RequestParam("to_user_id") Long toUserId, @RequestParam("action_type") String actionType, @TokenAuthAnno Long userId) {
+        return relationService.related(toUserId, actionType, userId);
     }
 
 
@@ -39,7 +38,7 @@ public class RelationController {
      * @return
      */
     @GetMapping("/follow/list")
-    public RelationResp getRelatedUserList(@RequestParam("user_id") Long userId, @TokenAuthAnno TokenToUserId tokenToUserId) {
+    public RelationResp getRelatedUserList(@RequestParam("user_id") Long userId, @TokenAuthAnno Long tokenToUserId) {
         return relationService.getRelatedUserList(userId,tokenToUserId);
     }
 
@@ -51,7 +50,7 @@ public class RelationController {
      * @return
      */
     @GetMapping("/follower/list")
-    public RelationResp getFollowerList(@RequestParam("user_id") Long userId, @TokenAuthAnno TokenToUserId tokenToUserId) {
+    public RelationResp getFollowerList(@RequestParam("user_id") Long userId, @TokenAuthAnno Long tokenToUserId) {
         return relationService.getFollowerList(userId,tokenToUserId);
     }
 
