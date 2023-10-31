@@ -1,9 +1,8 @@
 package com.tiktok.service_favorite.controller;
 
 import com.tiktok.model.anno.TokenAuthAnno;
-import com.tiktok.model.vo.TokenAuthSuccess;
+import com.tiktok.model.vo.TokenToUserId;
 import com.tiktok.model.vo.favorite.FavoriteResp;
-import com.tiktok.model.vo.video.VideoVo;
 import com.tiktok.service_favorite.mapper.LikesMapper;
 import com.tiktok.service_favorite.service.LikesService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,12 +18,11 @@ public class FavoriteController {
     @Autowired
     private LikesMapper likesMapper;
 
+
     @PostMapping("/action")
-    public FavoriteResp like(@RequestParam("video_id") Long videoId, @RequestParam("action_type") String actionType, @TokenAuthAnno TokenAuthSuccess tokenAuthSuccess) {
-        if (tokenAuthSuccess == null || !tokenAuthSuccess.getIsSuccess()) {
-            return new FavoriteResp("500", "请先登录哦~", null);
-        }
-        return likesService.liked(videoId, actionType, tokenAuthSuccess);
+    public FavoriteResp like(@RequestParam("video_id") Long videoId, @RequestParam("action_type") String actionType,@TokenAuthAnno TokenToUserId tokenToUserId) {
+        Long userId = tokenToUserId.getUserId();
+        return likesService.liked(videoId, actionType, userId);
     }
     /**
      * 根据视频id获取用户的喜欢视频数量
@@ -68,10 +66,7 @@ public class FavoriteController {
 
 
     @GetMapping("/list")
-    public FavoriteResp getLikedVideoList(@RequestParam("user_id") String userId, @TokenAuthAnno TokenAuthSuccess tokenAuthSuccess) {
-        if (tokenAuthSuccess == null || !tokenAuthSuccess.getIsSuccess()) {
-            return new FavoriteResp("500", "请先登录哦~", null);
-        }
+    public FavoriteResp getLikedVideoList(@RequestParam("user_id") String userId) {
         return likesService.getLikedVideoList(userId);
     }
 

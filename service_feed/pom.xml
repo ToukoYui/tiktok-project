@@ -105,8 +105,6 @@
             <groupId>io.opentracing.contrib</groupId>
             <artifactId>opentracing-spring-cloud-feign-starter</artifactId>
         </dependency>
-
-
         <!--模块导入-->
         <dependency>
             <groupId>com.tiktok</groupId>

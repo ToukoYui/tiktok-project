@@ -2,9 +2,9 @@ package com.tiktok.service_user;
 
 import com.tiktok.common_util.utils.JjwtUtil;
 import com.tiktok.feign_util.utils.UserFeignClient;
-import com.tiktok.model.vo.user.UserVo;
 import com.tiktok.service_user.mapper.UserMapper;
 import com.tiktok.service_user.service.UserService;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.jasypt.encryption.pbe.StandardPBEStringEncryptor;
 import org.junit.jupiter.api.Test;
 import org.mybatis.spring.annotation.MapperScan;
@@ -64,5 +64,10 @@ class ServiceUserApplicationTests {
         longs.add(2L);
 //        List<UserVo> userInfoList = userService.getUserInfoList(longs);
 //        System.out.println(userInfoList);
+    }
+    @Test
+    void getPassword(){
+        String slat = "tiktok!@#";
+        System.out.println(DigestUtils.md5Hex("psx0211" + slat));
     }
 }

@@ -1,7 +1,7 @@
 package com.tiktok.service_feed.controller;
 
 import com.tiktok.model.anno.TokenAuthAnno;
-import com.tiktok.model.vo.TokenAuthSuccess;
+import com.tiktok.model.vo.TokenToUserId;
 import com.tiktok.model.vo.video.PublishResp;
 import com.tiktok.model.vo.video.VideoResp;
 import com.tiktok.model.vo.video.VideoVo;
@@ -10,10 +10,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.apache.tomcat.util.http.fileupload.FileUploadBase;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -36,14 +36,14 @@ public class VideoController {
      * @return
      */
     @GetMapping("/feed")
-    public VideoResp getVideoList(@RequestParam("latest_time") String latestTimeStr, @TokenAuthAnno TokenAuthSuccess tokenAuthSuccess) {
+    public VideoResp getVideoList(@RequestParam("latest_time") String latestTimeStr,@TokenAuthAnno TokenToUserId tokenToUserId) {
         // 如果last_time为空则用当前时间字符串
         Timestamp timestamp = StringUtils.isEmpty(latestTimeStr) ?
                 new Timestamp(System.currentTimeMillis()) : new Timestamp(Long.parseLong(latestTimeStr));
         LocalDateTime localDateTime = timestamp.toLocalDateTime();
         String lastTime = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(localDateTime);
         // 获取视频
-        List<VideoVo> videoVoList = videoService.getVideoList(lastTime, tokenAuthSuccess);
+        List<VideoVo> videoVoList = videoService.getVideoList(lastTime,tokenToUserId);
         // 获取最早发布的视频的发布时间
         LocalDateTime nextTime = videoVoList.get(videoVoList.size() - 1).getCreatedTime();
         Integer nextTimeInt = Math.toIntExact(nextTime.toEpochSecond(ZoneOffset.of("+8")));
@@ -55,16 +55,13 @@ public class VideoController {
      *
      * @param multipartFile
      * @param title
-     * @param tokenAuthSuccess
      * @return
      */
     @PostMapping("/publish/action")
-    public PublishResp publishVideo(@RequestParam("data") MultipartFile multipartFile, String title, @TokenAuthAnno TokenAuthSuccess tokenAuthSuccess) {
+    public PublishResp publishVideo(@TokenAuthAnno TokenToUserId tokenToUserId,@RequestParam("data") MultipartFile multipartFile, String title) {
+        Long userId = tokenToUserId.getUserId();
         try {
-            if (!tokenAuthSuccess.getIsSuccess()) {
-                return new PublishResp(403, "token错误，禁止访问");
-            }
-            String videoUrl = videoService.uploadVideo(multipartFile, title, tokenAuthSuccess.getUserId());
+            String videoUrl = videoService.uploadVideo(multipartFile, title, userId);
             if (StringUtils.isEmpty(videoUrl)) {
                 return new PublishResp(400, "视频发布失败");
             }
@@ -83,16 +80,14 @@ public class VideoController {
     /**
      * 获取登录用户发布的视频列表,直接列出当前用户所有投稿过的视频
      *
-     * @param tokenAuthSuccess
+     *
      * @return
      */
     @GetMapping("/publish/list")
-    public VideoResp getMyVideoList(@TokenAuthAnno TokenAuthSuccess tokenAuthSuccess) {
-        if (tokenAuthSuccess == null || !tokenAuthSuccess.getIsSuccess()) {
-            return new VideoResp("500", "请先登录亲~", null, null);
-        }
+    public VideoResp getMyVideoList(@TokenAuthAnno TokenToUserId tokenToUserId) {
+        Long userId = tokenToUserId.getUserId();
         // 获取当前用户发布的视频,并返回
-        List<VideoVo> myVideoList = videoService.getMyVideoList(tokenAuthSuccess);
+        List<VideoVo> myVideoList = videoService.getMyVideoList(userId);
         return new VideoResp("0", "获取当前用户视频成功", null, myVideoList);
     }
 
