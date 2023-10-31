@@ -45,8 +45,9 @@ public class AuthFilter implements GlobalFilter{
         }
         String token = queryParams.getFirst("token");
         System.out.println(token);
-        GatewayResp resp = new GatewayResp("401", "请先登录哦~");
+
         if (StringUtils.isEmpty(token)) {
+            GatewayResp resp = new GatewayResp("401", "请先登录哦~");
             //响应中放入返回的状态吗, 没有权限访问
             response.setStatusCode(HttpStatus.UNAUTHORIZED);
             DataBufferFactory bufferFactory = response.bufferFactory();
@@ -58,6 +59,7 @@ public class AuthFilter implements GlobalFilter{
             JjwtUtil.getUserId(token);
             return chain.filter(exchange);
         }catch (Exception e){
+            GatewayResp resp = new GatewayResp("403", "登录验证信息过期");
             //响应中放入返回的状态吗, 没有权限访问
             response.setStatusCode(HttpStatus.UNAUTHORIZED);
             DataBufferFactory bufferFactory = response.bufferFactory();
