@@ -10,19 +10,18 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3306/db_douyin?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://114.132.160.52:3306/db_douyin?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
     type: com.alibaba.druid.pool.DruidDataSource
-    username: root
-#    password:
+    username: ENC(5Ev24JNagGONP1Ca9+xZWg==)
+    password: ENC(lQ3mg76A7j6WOm/j8zQ5dyfaDa06L4FX)
     hikari:
       max-lifetime: 120000  #连接存活两分钟
       maximum-pool-size: 300
 
-
   redis:
-    host: 127.0.0.1
+    host: 114.132.160.52
     port: 6379
-#    password:
+    password: ENC(lQ3mg76A7j6WOm/j8zQ5dyfaDa06L4FX)
     database: 1
 
   jackson:
@@ -32,7 +31,7 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: 127.0.0.1:8848
+        server-addr: localhost:8848
 
 mybatis:
   mapper-locations: classpath:mapper/*.xml
