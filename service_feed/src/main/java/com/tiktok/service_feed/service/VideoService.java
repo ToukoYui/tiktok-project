@@ -72,11 +72,7 @@ public class VideoService {
         // 这样你再次登录的时候会获取的是该用户的发布视频
         // 如果用户没有发布视频,controller返回-1就会异常
         String redisKey;
-        if (userId == null){
-            redisKey = "videolist:public";
-        }else {
-            redisKey = "videolist:public"+userId;
-        }
+        redisKey = userId == null ? "videolist:public" : "videolist:public"+userId;
         List<VideoVo> videoVoListFromRedis = redisTemplate.opsForValue().get(redisKey);
         if (videoVoListFromRedis != null) {
             log.info("获取视频流，从缓存中获取------------->" + videoVoListFromRedis.toString());

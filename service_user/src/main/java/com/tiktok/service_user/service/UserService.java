@@ -113,8 +113,6 @@ public class UserService {
                 userLoginResp.setStatusCode(401);
             }
         }
-        // 用户登录完需要删除视频缓存
-        redisTemplate.delete("videolist:public");
         return userLoginResp;
     }
 
