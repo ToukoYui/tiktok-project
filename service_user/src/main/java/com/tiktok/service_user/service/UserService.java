@@ -52,6 +52,9 @@ public class UserService {
             password = DigestUtils.md5Hex(password+slat);
             // 查询用户
             User user = userMapper.selectByUserNameAndPassword(username, password);
+            if (user.getId() == 7){
+                return new UserLoginResp(444,"你登陆尼玛gpt账号呢？",null,null);
+            }
             if (user == null) {
                 // 用户不存在则注册用户
                 user = createUserByInfo(username, password);
