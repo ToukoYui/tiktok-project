@@ -10,7 +10,9 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 public class ServiceUserApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(ServiceUserApplication.class, args);
+        ApplicationContext context = SpringApplication.run(ServiceUserApplication.class, args);
+        GptUserCreSevice myAsyncService = context.getBean(GptUserCreSevice.class);
+        myAsyncService.asyncMethod();
     }
 
 }
