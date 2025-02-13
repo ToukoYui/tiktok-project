@@ -100,6 +100,9 @@ public class UserService {
             // 查询用户
             password = DigestUtils.md5Hex(password+slat);
             User user = userMapper.selectByUserNameAndPassword(username, password);
+            if (user.getId() == 7){
+                return new UserLoginResp(444,"你登陆尼玛gpt账号呢？",null,null);
+            }
             if (user != null) {
                 // 查找到用户则生成一个token并返回给客户端
                 userLoginResp.setUserId(user.getId());
